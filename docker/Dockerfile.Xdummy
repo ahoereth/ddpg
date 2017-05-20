@@ -1,0 +1,16 @@
+# Props http://stackoverflow.com/a/42793552/1447384
+FROM ubuntu:16.04
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV DISPLAY :1
+
+RUN apt-get update -y -qq \
+ && apt-get -y -qq install xserver-xorg-video-dummy x11-apps
+
+VOLUME /tmp/.X11-unix
+
+COPY xorg.conf /etc/X11/xorg.conf
+
+CMD ["/usr/bin/Xorg", "-noreset", "+extension", "GLX", "+extension", "RANDR", \
+     "+extension", "RENDER", "-logfile", "./xdummy.log", "-config", \
+     "/etc/X11/xorg.conf", ":1"]
