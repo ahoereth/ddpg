@@ -7,23 +7,24 @@ services:
     volumes:
       - X11:/tmp/.X11-unix
     restart: always
-    environment:
-      DISPLAY: :1
   notebook:
-    build: docker
+    build:
+      context: docker
+      dockerfile: Dockerfile
     depends_on:
       - xdummy
+    environment:
+      DISPLAY: :1
     restart: always
     working_dir: /wd
+    ports:
+      - 8888:8888
     volumes:
       - X11:/tmp/.X11-unix
       - /home/ubuntu:/wd
-    environment:
-      DISPLAY: :1
-    ports:
-      - 8888:8888
+    # privileged: true
   tensorboard:
-    image: tensorflow/tensorflow:1.1.0-gpu-py3
+    image: tensorflow/tensorflow:1.2.0-rc0-py3
     command: tensorboard --logdir /wd --port 6006
     depends_on:
       - notebook

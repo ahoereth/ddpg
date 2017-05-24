@@ -1,13 +1,10 @@
-FROM tensorflow/tensorflow:1.1.0-gpu-py3
+FROM tensorflow/tensorflow:1.2.0-rc0-py3
 
 RUN apt-add-repository -y ppa:george-edison55/cmake-3.x \
  && echo deb http://archive.ubuntu.com/ubuntu trusty-backports main restricted universe multiverse | tee /etc/apt/sources.list.d/trusty-backports.list \
  && apt-get update -qq
 
-RUN apt-get install -y -qq curl wget git unzip python-opengl xvfb
-
-# zlib1g-dev libjpeg-dev libboost-all-dev gcc libsdl2-dev \
-# libxinerama1 libxcursor1
+RUN apt-get install -y -qq curl wget git unzip python-opengl xvfb vim
 
 # pachi-py deps
 RUN apt-get install -y -qq cmake cmake-data libav-tools
