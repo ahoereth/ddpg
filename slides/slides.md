@@ -3,14 +3,68 @@
 \tableofcontents
 
 
-# Deep RL: An Overview
-@Li2017
+
+
+# Deterministic Policy Gradient
+
+## From Q-Learning to DPG
+
+  - Going from Q Learning to DPG
+  - How does it solve the continuous thing?
+
+## DPG
+
+  - Actor & Critic
+  - Bellman equation
+
+## Policy Gradient
+
+  - What is the "policy gradient"? Probably requires some math.
+
+@Silver2014
+
+
+
+# Deep Deterministic Policy Gradient
+
+## DQN & DDPG
+
+  - Contrast to DQN
+    - Also uses Q networks (critic)
+    - Q network has only a single output and action is part of its input.
+    - Explicit actor
+  - Bellman equation approximation
+
+## Deep DPG
+
+  - Custom gradient calculation/application for deep ANNs. Most people probably only use `.minimize(loss)`.
+
+@Lillicrap2015
+
+## Target Networks
+
+  - Soft Updates
+
+## Batch Normalization
+
+## Exploration
+  - What are different ways of exploration?
+  - Balance between exploration/exploitation?
+  - Expert Knowledge?
+
+### Ornstein-Uhlenbeck Process
+  - In which environments is this great?
+  - Gauss-Markov Process
+  - Brownian Particles
+  - Wiener Process
+
+@Uhlenbeck1930
 
 ## Experience Replay
 
   - Why is it so important for Deep RL?
 
-## Prioritized Experience Replay
+### Prioritized Experience Replay
 
   - Why is it better than uniform replay?
   - What are problems one needs to be aware of?
@@ -19,44 +73,6 @@
 
 @Schaul2015
 
-## Exploration
-
-  - Why is it important?
-  - What are different ways it can be achieved?
-  - Balance between exploration/exploitation?
-  - How does one need to consider the environment?
-
-## Ornstein-Uhlenbeck Process
-
-  - In which environments is this great?
-  - Gauss-Markov Process
-  - Brownian Particles
-  - Wiener Process
-
-@Uhlenbeck1930
-
-## Another Exploration Strategy in Detail?
-
-  - Specific to a different application would be great.
-
-
-# Deterministic Policy Gradient
-
-## DPG
-
-  - What is the "policy gradient"? Probably requires some math.
-
-@Silver2014
-
-## Deep DPG
-
-  - Contrast to DQN
-    - Also uses Q networks (critic)
-    - Q network has only a single output and action is part of its input.
-    - Explicit actor
-  - Custom gradient calculation/application for deep ANNs. Most people probably only use `.minimize(loss)`.
-
-@Lillicrap2015
 
 
 # Implementation
@@ -79,13 +95,20 @@ action_gradient, = tf.gradients(critic.y, actions)
 policy_gradients = tf.gradients(actor.y, actor.vars, -action_gradient)
 ```
 
-
 ## Moar Tensorflow
 
     - variable scopes and `get_variables` helpers
     - Batch normalization (`training`?)
     - `tf.control_dependencies`
     - Threading? (not implemented as of now)
+
+
+
+# Reinforcement Learning: What else?
+
+## RL: An Overview
+
+@Li2017
 
 
 # Thank you for your Attention
