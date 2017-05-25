@@ -9,7 +9,7 @@ SIZE?=64
 			--highlight-style tango \
 			--slide-level=2 \
 			-o $@ \
-			$*.md
+			$*.yaml $*.md
 
 # --listings
 
