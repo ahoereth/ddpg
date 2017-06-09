@@ -2,18 +2,22 @@
 
 # Overview
 
-## General Applications of Reinforcement Learning
-  - What
-  - What
+## Robotics and Reinforcement Learning
+  - The General Problem of Robotics
+  - Applications
+    - Toddler
+    - What
+
+## Cutting Edge Applications of Reinforcement Learning
+  - DeepStack Poker
+  - AlphaGo
+  - Doom
 
 @Li2017
 
-## Cutting Edge Applications of Reinforcement Learning
-  - What
-  - What
-  - What
+# Robotics and Reinforcement Learning
 
-# General Applications
+## The General Problem of Robotics
 
 ## Toddler - The Walking Robot
 
@@ -24,6 +28,8 @@
   - Cost to run (can't run robot forever to learn)
   - Delayed reward - "torques applied at one time may have an effect on the performance many steps in the future"
 
+## Toddler - The Walking Robot
+
 ### The Robot
  - A simple "passive walker" robot
    - Can walk down a slope just by gravity, i.e. it is a stable platform to learn walking on
@@ -33,7 +39,6 @@
  - Learns online
  - No world knowledge of the environment
 
-
 ### Results
  - Within one minute, the robot reaches the minimum definition of walking by the researchers:
    - "...foot clearance on nearly every step"
@@ -42,7 +47,11 @@
 
 ##
 
- Skip skip sip
-
 # The Cutting Edge
+
+## DeepStack Poker
+
+## AlphaGo
+
+## Doom
 
