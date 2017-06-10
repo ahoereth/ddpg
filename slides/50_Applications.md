@@ -9,7 +9,7 @@
     - What
 
 ## Cutting Edge Applications of Reinforcement Learning
-  - DeepStack Poker
+  - Poker
   - AlphaGo
   - Doom
 
@@ -49,7 +49,46 @@
 
 # The Cutting Edge
 
-## DeepStack Poker
+## Poker
+
+### Poker as an RL Problem
+
+  - Imperfect information game -- The hands of other players are unknown, as well as the values of upcoming cards
+  - Multi-agent Zero Sum game
+    -- Nash Equillibrium exists, but is incalculable
+
+### NFSP (Neural Ficticious Self Play)
+
+  - Applying neural networks to the concept of "Ficticious Self Play"
+    -- FSP = Choose the best response to the opponent's average behavior
+  - Approaches Nash Equilibrium as it learns
+  
+### NFSP Architecture
+
+  - Remembers state transitions and its best responses in two separate memories Mrl and Msl ***LATEX THIS***
+    -- State transitions used in RL; Best responses used for supervised learning
+  - ***Mrl*** uses an off-policy deep RL algorithm to learn the best policy from the state transitions
+  - ***Msl*** uses a feedforward net to learn the average play (in order to do ficticious self play)
+  - Target network for stability and has an explore parameter
+  
+### NFSP Poker Performance
+
+\columnsbegin
+\column{.5\textwidth}
+
+- Comparable to other AIs based on expert knowledge representation (old-AI)
+  - Measured in mbb/h -- achieved close to 0 mmb/h
+    -- Fold on every hand: -750 mbb/h
+    -- Expert: 40-60 mmb/h
+    -- Knowledge system based AIs: ~-20 mmb/h
+
+\column{.50\textwidth}
+
+![Performance](/gfx/poker_performance.jpg?raw=true "Poker Performance")
+![Nash](/gfx/poker_exploit.jpg?raw=true "Poker Exploitation")
+
+\columnsend
+  
 
 ## AlphaGo
 
