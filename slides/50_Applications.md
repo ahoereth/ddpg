@@ -10,7 +10,7 @@
 
 ## Cutting Edge Applications of Reinforcement Learning
   - Poker
-  - AlphaGo
+  - Multiple Agents
   - Doom
 
 @Li2017
@@ -57,9 +57,9 @@
   - Multi-agent Zero Sum game
     -- Nash Equillibrium exists, but is incalculable
 
-### NFSP (Neural Ficticious Self Play)
+### NFSP (Neural Fictitious Self Play)
 
-  - Applying neural networks to the concept of "Ficticious Self Play"
+  - Applying neural networks to the concept of "Fictitious Self Play"
     -- FSP = Choose the best response to the opponent's average behavior
   - Approaches Nash Equilibrium as it learns
   
@@ -68,7 +68,7 @@
   - Remembers state transitions and its best responses in two separate memories Mrl and Msl ***LATEX THIS***
     -- State transitions used in RL; Best responses used for supervised learning
   - ***Mrl*** uses an off-policy deep RL algorithm to learn the best policy from the state transitions
-  - ***Msl*** uses a feedforward net to learn the average play (in order to do ficticious self play)
+  - ***Msl*** uses a feedforward net to learn the average play (in order to do fictitious self play)
   - Target network for stability and has an explore parameter
   
 ### NFSP Poker Performance
@@ -88,9 +88,12 @@
 ![Nash](/gfx/poker_exploit.jpg?raw=true "Poker Exploitation")
 
 \columnsend
-  
+ 
+@Heinrich2016
 
-## AlphaGo
+## Multiagent RL
+
+### 
 
 ## Doom
 
