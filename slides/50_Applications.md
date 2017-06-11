@@ -4,22 +4,28 @@
 
 ## Robotics and Reinforcement Learning
   - The General Problem of Robotics
-  - Applications
+  - Examples
     - Toddler
-    - What
+    - Safety Framework
 
 ## Cutting Edge Applications of Reinforcement Learning
   - Poker
   - Multiple Agents
-  - Doom
 
 @Li2017
 
 # Robotics and Reinforcement Learning
 
 ## The General Problem of Robotics
+  - The world is full of noise
+    - Great to neural networks!
+  - Simulations can't simulate the full range and accuracy of the real world, so training actual robots is best
+  - Danger to break or destroy robot or property
+    - Robots are expensive
 
 ## Toddler - The Walking Robot
+
+@Tedrake2005
 
 ### The Walking Problem
   - Many degrees of freedom causes combinatorial explosion
@@ -34,7 +40,7 @@
  - A simple "passive walker" robot
    - Can walk down a slope just by gravity, i.e. it is a stable platform to learn walking on
 
-#### The Algorithm
+### The Algorithm
  - Uses an Actor-Critic reinforcement learning setup
  - Learns online
  - No world knowledge of the environment
@@ -45,7 +51,27 @@
  - Within 20 minutes, it learns a robust gait
    - This equates to around 960 steps (.8 Hz)
 
-##
+## Safety Framework
+
+  -Since neural networks are "black boxes," it is hard to pinpoint areas where training might lead to dangerous situations based on the weights of the model
+  -Safety has typically been guaranteed by a manual fallback mechanism
+or making the environment safe
+
+@Fisac2017
+
+## Safety Framework
+\columnsbegin
+\column{.5\textwidth}
+
+Solution:
+Combines both a safety net and a bayesian mechanism online to deal with sudden changes in the environment
+
+\column{.50\textwidth}
+![Safety](/gfx/safety.jpg?raw=true "Poker Exploitation")
+
+Youtube link: https://www.youtube.com/watch?v=WAAxyeSk2bw
+
+### 
 
 # The Cutting Edge
 
@@ -120,5 +146,4 @@ them in their own policy learning procedure"
 
 @Lowe2017
 
-## Doom
 
