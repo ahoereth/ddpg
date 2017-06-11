@@ -21,10 +21,29 @@ services:
       - 8888:8888
     volumes:
       - X11:/tmp/.X11-unix
+      - .:/wd
+  notebook-aws:
+    build:
+      context: docker
+      dockerfile: Dockerfile.gpu
+    depends_on:
+      - xdummy
+    environment:
+      DISPLAY: :1
+    restart: always
+    working_dir: /wd
+    ports:
+      - 8888:8888
+    volumes:
+      - X11:/tmp/.X11-unix
       - /home/ubuntu:/wd
-    # privileged: true
+      - nvidia:/usr/local/nvidia:ro
+    devices:
+      - /dev/nvidia0:/dev/nvidia0
+      - /dev/nvidiactl:/dev/nvidiactl
+      - /dev/nvidia-uvm:/dev/nvidia-uvm
   tensorboard:
-    image: tensorflow/tensorflow:1.2.0-rc0-py3
+    image: tensorflow/tensorflow:1.2.0-rc2-py3
     command: tensorboard --logdir /wd --port 6006
     depends_on:
       - notebook
@@ -36,3 +55,6 @@ services:
       - 6006:6006
 volumes:
   X11:
+  nvidia:
+    external:
+      name: nvidia_driver_375.39
