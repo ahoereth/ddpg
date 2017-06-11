@@ -65,10 +65,10 @@
   
 ### NFSP Architecture
 
-  - Remembers state transitions and its best responses in two separate memories Mrl and Msl ***LATEX THIS***
+  - Remembers state transitions and its best responses in two separate memories \[ M_RL \] and \[ M_SL \]
     -- State transitions used in RL; Best responses used for supervised learning
-  - ***Mrl*** uses an off-policy deep RL algorithm to learn the best policy from the state transitions
-  - ***Msl*** uses a feedforward net to learn the average play (in order to do fictitious self play)
+  - \[ M_RL \] uses an off-policy deep RL algorithm to learn the best policy from the state transitions
+  - \[ M_SL \] uses a feedforward net to learn the average play (in order to do fictitious self play)
   - Target network for stability and has an explore parameter
   
 ### NFSP Poker Performance
@@ -77,10 +77,10 @@
 \column{.5\textwidth}
 
 - Comparable to other AIs based on expert knowledge representation (old-AI)
-  - Measured in mbb/h -- achieved close to 0 mmb/h
-    -- Fold on every hand: -750 mbb/h
-    -- Expert: 40-60 mmb/h
-    -- Knowledge system based AIs: ~-20 mmb/h
+  - Measured in mbb/h -- achieved relatively close to 0 *mmb/h*
+    -- Fold on every hand: -750 *mbb/h*
+    -- Expert: 40-60 *mmb/h*
+    -- Knowledge system based AIs: ~ -20 *mmb/h*
 
 \column{.50\textwidth}
 
@@ -93,7 +93,32 @@
 
 ## Multiagent RL
 
-### 
+### The Problem
+  - Multiple agents affect the environment
+    - Agent can't accurately predict environment because it is no longer based on its policy alone
+    - Significantly increases the variability in policy gradient algorithms
+      -- This is because the reward in normal policy gradients is only conditioned on the agent's own actions
+
+### The Solution
+  - Actor-Critic with "centralized" training and "decentralized" execution.
+    - The actor can not contain information about the other actors at both training and test time (would require additional assumptions)
+    - Solve this by making the critic is supplied with the policies of all agents (centralized), and the actor remains isolated
+    - At test time, only actors are used (decentralized)
+      -- "Since the centralized critic function explicitly uses the decision-making policies of other agents, we
+additionally show that agents can learn approximate models of other agents online and effectively use
+them in their own policy learning procedure"
+  - Ensemble of policies to make each individual agent robust to changes in other agents' policies
+  - Named: MADDPG
+
+![MultiNetwork](/gfx/multi_network.jpg?raw=true "MADDPG Network")
+
+### Performance
+  - Trained on a battery of cooperative and competitive multi-agent tasks
+  - Outperformed DDPG significantly
+  - Youtube link: https://www.youtube.com/watch?v=QCmBo91Wy64
+![MultiPerformance](/gfx/multi_perf.jpg?raw=true "MADDPG Performance")
+
+@Lowe2017
 
 ## Doom
 
