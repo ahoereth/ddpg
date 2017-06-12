@@ -67,7 +67,7 @@ Solution:
 Combines both a safety net and a bayesian mechanism online to deal with sudden changes in the environment
 
 \column{.50\textwidth}
-![Safety](/gfx/safety.jpg?raw=true "Poker Exploitation")
+![Safety](./slides/gfx/safety.jpg "Poker Exploitation")
 
 Youtube link: https://www.youtube.com/watch?v=WAAxyeSk2bw
 
@@ -91,10 +91,10 @@ Youtube link: https://www.youtube.com/watch?v=WAAxyeSk2bw
   
 ### NFSP Architecture
 
-  - Remembers state transitions and its best responses in two separate memories \[ M_RL \] and \[ M_SL \]
+  - Remembers state transitions and its best responses in two separate memories $M_RL$ and $M_SL$
     -- State transitions used in RL; Best responses used for supervised learning
-  - \[ M_RL \] uses an off-policy deep RL algorithm to learn the best policy from the state transitions
-  - \[ M_SL \] uses a feedforward net to learn the average play (in order to do fictitious self play)
+  - $M_RL$ uses an off-policy deep RL algorithm to learn the best policy from the state transitions
+  - $M_SL$ uses a feedforward net to learn the average play (in order to do fictitious self play)
   - Target network for stability and has an explore parameter
   
 ### NFSP Poker Performance
@@ -110,8 +110,8 @@ Youtube link: https://www.youtube.com/watch?v=WAAxyeSk2bw
 
 \column{.50\textwidth}
 
-![Performance](/gfx/poker_performance.jpg?raw=true "Poker Performance")
-![Nash](/gfx/poker_exploit.jpg?raw=true "Poker Exploitation")
+![Performance](./slides/gfx/poker_performance.jpg "Poker Performance")
+![Nash](./slides/gfx/poker_exploit.jpg "Poker Exploitation")
 
 \columnsend
  
@@ -136,13 +136,13 @@ them in their own policy learning procedure"
   - Ensemble of policies to make each individual agent robust to changes in other agents' policies
   - Named: MADDPG
 
-![MultiNetwork](/gfx/multi_network.jpg?raw=true "MADDPG Network")
+![MultiNetwork](./slides/gfx/multi_network.jpg "MADDPG Network")
 
 ### Performance
   - Trained on a battery of cooperative and competitive multi-agent tasks
   - Outperformed DDPG significantly
   - Youtube link: https://www.youtube.com/watch?v=QCmBo91Wy64
-![MultiPerformance](/gfx/multi_perf.jpg?raw=true "MADDPG Performance")
+![MultiPerformance](./slides/gfx/multi_perf.jpg "MADDPG Performance")
 
 @Lowe2017
 
