@@ -58,10 +58,6 @@ Most environments (even if partially observable) can be converted into an MDP
 $\left \langle S,P \right \rangle$
 where $S$ is the (finite) state space and $P$ is the state transition matrix (matrix of state transition probabilities)
 
-## Markov Decision Processes
-
-### Going from Chains to Reward Processes
-
 *Markov Reward Process*: Add in reward values to a Markov chain.  Our tuple becomes:
 $\left \langle S,P,R,\gamma \right \rangle$
 where $R$ is a reward function and $\gamma$ is a discount factor, $\gamma \in [0,1]$
@@ -73,29 +69,49 @@ $G_t=R_{t+1}+\gamma R_{t+2}+...=\sum_{k=0}\gamma^k R_{t+k+1}$
 ### Value Functions
 
 The *State-Value Function* gives the long term value of state $s$, i.e. the expected reward if the agent starts in this state
-$v(s)=\mathbb{E}(G_t|S_t=s)$
+$V(s)=\mathbb{E}(G_t|S_t=s)$
+We have to take the expectation because $G_t$ is random; we need to know the expected value based on all random permutations of traversals through the Markov process
+
+## Markov Decision Processes
+
+### Now to the Markov Decision Process
+
+- Up until now, actions have been completely random
+- Now we add a policy to choose actions
+It can be described as an "MRP with decisions."  We add in the agent to our tuple representation:
+$\left \langle S,A,P,R,\gamma \right \rangle$
+where $A$ is a finite set of actions
+$P$ and $R$ now depend on actions taken; formally:
+$P_{ss'}^a=\mathbb{P}(R_{t+1}|S_t=s, A=a)$
+$R_{s}^a=\mathbb{E}(R_{t+1}|S_t=s, A=a)$
+
+Reminder: A *policy* is a function mapping states to actions; it tells the agent what to do given the state
+
+## Markov Decision Processes
+
+### Value Functions Revisited
+
+The *State-Value Function* remains mostly the same in MDP as in MRP, except it depends on the policy:
+$V^\pi(s)=\mathbb{E_\pi}(G_t|S_t)$
+"The expectation when we sample all actions according to this policy $\pi$"; the value of a state
+The *Action-Value Function* is defined as how good it is to take a particular action when the agent is in a particular state:
+$Q^\pi(s,a)=\mathbb{E_\pi}(G_t|S_t=s, A_t=a)$
+"The expected return starting from state $s$, taking action $a$, and then following policy $\pi$"; the value of an action
+
+Note: we can also define these as recursive *Bellman Equations* where they refer to themselves instead of with $G_t$
+
+## Markov Decision Processes
+
+### Solving Reinforcement Learning
+- We want to maximize the value of our actions based on future reward, therefore (* denotes max/optimal function):
+$V^*(s)=\max_a Q^*(s,a)$
+$Q^*(s,a)=R_s^a+\gamma \sum_{s'\in S} P_{ss'}^a V^*(s')$
+We can nest these to get:
+$Q^*(s,a)=R_s^a+\gamma \sum_{s'\in S} P_{ss'}^a \max_a Q^*(s,a)$
+This is the *Bellman Optimality Equation* (note: it can be nested in the other direction too to solve for $v_*(s)$)
+Solve this, and the reinforcement learning problem is solved
 
 
-This MDP consists of:
-
-- a state space $S$
-- an action space $A$
-- an initial state distribution with density $p_1(s_1)$
-- a stationary transition dynamics distribution with conditional density  $p(s_{t+1}|s_t,a_t)$ which satisfies the Markov property $p(s_{t+1}|s_1,a_1, ..., s_t,a_t) = p(s_{t+1}|s_t,a_t)$ for any trajectory in state-action space $s_1, a_1, s_2, a_2, ... s_T, a_T$
-- a reward function $r: S \times A \rightarrow R$
-
-
-## Policy, Trajectory, Return
-- A policy $\pi$ is used to select actions in the MDP
 	- Deterministic: $a = \pi(s, \theta)$
 	- Stochastic: $\pi(a | s, \theta)$
-- This results in a trajectory $\tau$ of states, actions and rewards $s_1, a_1, r_1, ..., s_T, a_T, r_T$  within $S \times A \times \mathbb{R}$
-- the return is the total discounted reward from timestep t onwards: $r_t^{\gamma} = \sum_{k=t}^{\infty} \gamma^{k-t} r(s_k,a_k)$ with $0 < \gamma < 1$
 
-## Value Functions
-Value functions are expected total discounted reward
-
-- The state-value function is $V^{\pi}(s) = \mathbb{E}[r_1^{\gamma}|S_1 = s; \pi]$
-- The state-action value funtion is $Q^{\pi}(s, a) = \mathbb{E}[r_1^{\gamma}|S_1 = s, A_1 = a; \pi]$
-
-The agent's goal is to come up with a policy that maximises the cumulative discounted reward from the start state, $\mathbb{E}[r_1^{\gamma}|\pi_{\theta}]$
