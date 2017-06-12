@@ -2,14 +2,15 @@ HOST?=ddpg
 SIZE?=64
 
 %.pdf:
-		pandoc \
-			-t beamer \
-			--latex-engine=pdflatex \
-			--bibliography=library.bib \
-			--highlight-style tango \
-			--slide-level=2 \
-			-o $@ \
-			$*.yaml slides/*.md  # Fixme
+	cd slides && \
+	pandoc \
+		-t beamer \
+		--latex-engine=pdflatex \
+		--bibliography=library.bib \
+		--highlight-style tango \
+		--slide-level=2 \
+		-o slides.pdf \
+		slides.yaml *.md
 
 # --listings
 

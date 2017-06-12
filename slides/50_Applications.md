@@ -76,7 +76,7 @@ Combines both a safety net and a bayesian mechanism online to deal with sudden c
 Youtube link: https://www.youtube.com/watch?v=WAAxyeSk2bw
 
 \column{.50\textwidth}
-![Safety](./slides/gfx/safety.jpg "Poker Exploitation")
+![Safety](gfx/safety.jpg "Poker Exploitation")
 
 \columnsend
 
@@ -125,8 +125,8 @@ Youtube link: https://www.youtube.com/watch?v=WAAxyeSk2bw
 
 \column{.50\textwidth}
 
-![Performance](./slides/gfx/poker_performance.jpg "Poker Performance")
-![Nash](./slides/gfx/poker_exploit.jpg "Poker Exploitation")
+![Performance](gfx/poker_performance.jpg "Poker Performance")
+![Nash](gfx/poker_exploit.jpg "Poker Exploitation")
 
 \columnsend
 
@@ -151,7 +151,7 @@ Youtube link: https://www.youtube.com/watch?v=WAAxyeSk2bw
 
 ## Multiagent RL
 
-![MultiNetwork](./slides/gfx/multi_network.jpg "MADDPG Network")
+![MultiNetwork](gfx/multi_network.jpg "MADDPG Network")
 
 ## Multiagent RL
 
@@ -159,8 +159,8 @@ Youtube link: https://www.youtube.com/watch?v=WAAxyeSk2bw
   - Trained on a battery of cooperative and competitive multi-agent tasks
   - Outperformed DDPG significantly
   - Youtube link: https://www.youtube.com/watch?v=QCmBo91Wy64
-  
-![MultiPerformance](./slides/gfx/multi_perf.jpg "MADDPG Performance")
+
+![MultiPerformance](gfx/multi_perf.jpg "MADDPG Performance")
 
 
 

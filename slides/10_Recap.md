@@ -2,7 +2,7 @@
 
 ## Problem setting
 
-![RL general setting](./slides/gfx/RL_principle.png){ width=35% }
+![RL general setting](gfx/RL_principle.png){ width=35% }
 
 - An agent is within an environment
 - The agent is to complete some task and receive reward
