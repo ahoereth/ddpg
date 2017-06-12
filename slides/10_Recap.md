@@ -140,12 +140,12 @@ Method to solve $Q^*$
  - Observation: $O_t$; what the environment shows to the agent at step $t$, after an action
  - Action: $A_t$; the action taken at step $t$, performed by agent
  - History: sequence of observations, actions, and rewards up to current time step; i.e. $H_t=A_1,O_1,R_1...A_t,O_t,R_t$
- - State: a function of history; $S_t=f(H_t); the information used to determine what happens next
+ - State: a function of history; $S_t=f(H_t)$; the information used to determine what happens next
  - Fully observable: the environment state equals the agent state; $S_t^a=S_t^e$; the agent knows the complete dynamics of the environment; MDP
  - Partially observable: the agent must make an assumption about the environment because it doesn't know it's dynamics
  - Model: the agent's internal representation of the environment
  - Policy: $\pi$; what the agent uses to map states to actions; tells the agent what to do
-  - Deterministic policy: a state will always lead to a certain action; $a=\pi(s)
+  - Deterministic policy: a state will always lead to a certain action; $a=\pi(s)$
   - Stochastic policy: a state will yield a probability of actions to choose from; $\pi(a|s)=\mathbb{P}(A=a|S=s)$
  - State-Value Function: tells the value of a state based on the expected future reward
  - Action-Value Function: tells the value of an action based on expected future reward
