@@ -111,7 +111,57 @@ $Q^*(s,a)=R_s^a+\gamma \sum_{s'\in S} P_{ss'}^a \max_a Q^*(s,a)$
 This is the *Bellman Optimality Equation* (note: it can be nested in the other direction too to solve for $v_*(s)$)
 Solve this, and the reinforcement learning problem is solved
 
+## Q-Learning
 
-	- Deterministic: $a = \pi(s, \theta)$
-	- Stochastic: $\pi(a | s, \theta)$
+Method to solve $Q^*$
+ - Iteratively act through *episodes*
+ - Backpropagate reward in order to calculate Q values which tell the values of actions
+ - Take the maximum Q value at each time step
+ - Stores Q values into a table
+ $Q(s_t,a_t)=Q(s_t,a_t) + \alpha_t \cdot (R_{t+1}+\gamma \max_a Q(s_{t+1},a) - Q(s_t,a_t))$
+ 
+ ## Q-Learning
+ 
+ ### DQN
+ - Uses a neural network to learn $Q^*$
+ - Can be thought of as calculating just a row of WHAT in the Q-table, then taking the max (instead of calculating the whole table)
 
+ ### Continuous Actions
+ - If we can't (or don't want to) discretize the action space, the Q-table becomes incalculable
+  - Would equate to an infinite length table
+ -Therefore, Q-learning (and by extension DQN) will not work when dealing with continuous actions
+ 
+ ## Some Helpful Definitions
+ 
+ To follow everything to follow, it is necessary to have a general grasp of the following concepts:
+ - Agent: what performs actions in the environment; wants to maximize future reward
+ - Environment: where the agent resides and what gives observations and reward; altered by agent
+ - Reward: $R_t$; reward at time step $t$, scalar
+ - Observation: $O_t$; what the environment shows to the agent at step $t$, after an action
+ - Action: $A_t$; the action taken at step $t$, performed by agent
+ - History: sequence of observations, actions, and rewards up to current time step; i.e. $H_t=A_1,O_1,R_1...A_t,O_t,R_t$
+ - State: a function of history; $S_t=f(H_t); the information used to determine what happens next
+ - Fully observable: the environment state equals the agent state; $S_t^a=S_t^e$; the agent knows the complete dynamics of the environment; MDP
+ - Partially observable: the agent must make an assumption about the environment because it doesn't know it's dynamics
+ - Model: the agent's internal representation of the environment
+ - Policy: $\pi$; what the agent uses to map states to actions; tells the agent what to do
+  - Deterministic policy: a state will always lead to a certain action; $a=\pi(s)
+  - Stochastic policy: a state will yield a probability of actions to choose from; $\pi(a|s)=\mathbb{P}(A=a|S=s)$
+ - State-Value Function: tells the value of a state based on the expected future reward
+ - Action-Value Function: tells the value of an action based on expected future reward
+ 
+ ## Some Helpful Definitions
+ 
+ ### Types of Reinforcement Algorithms
+ - Value Based
+  - No policy (implicit)
+  - Value function
+ - Policy Based
+  - Policy
+  - No value function
+ - **Actor-Critic**
+  - Polcy
+  - Value function
+ - Model Based/Model Free
+  - Polcy and/or Value function
+  - Based: has model; Free; no model
