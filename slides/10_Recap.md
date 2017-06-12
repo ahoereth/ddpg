@@ -15,7 +15,6 @@
 The environment in reinforcement learning can be described as a Markov Decision Process
 
 This relies on the Markov Property (here described as a Markov State):
-
 $$\mathbb{P}[S_{t+1}|S_t]=\mathbb{P}[S_{t+1}|S_1...S_t]$$
 
 This means:
@@ -194,15 +193,15 @@ To follow everything to come, it is necessary to have a general grasp of the fol
 
 ### Types of Reinforcement Algorithms
 
-- Value Based
-  - No policy (implicit)
-  - Value function
-- Policy Based
-  - Policy
-  - No value function
-- **Actor-Critic**
-  - Polcy
-  - Value function
-- Model Based/Model Free
-  - Polcy and/or Value function
-  - Based: has model; Free; no model
+* Value Based
+  * No policy (implicit)
+  * Value function
+* Policy Based
+  * Policy
+  * No value function
+* **Actor-Critic**
+  * Polcy
+  * Value function
+* Model Based/Model Free
+  * Policy and/or Value function
+  * Based: has model; Free; no model
