@@ -1,32 +1,80 @@
-# RL Recap
+# Reinforcement Learning Recap
 
 ## Problem setting
 
-
 ![RL general setting](./slides/gfx/RL_principle.png){ width=35% }
 
-- Lets consider an agent in a stochastic environment
-- It sequentially chooses actions over a sequence of time steps -
-- such as to maximize a cumulative reward function
+- An agent is within an environment
+- The agent is to complete some task and receive reward
+- It solves this task over some amount of time steps
 
-## Relation to supervised machine learning
-In supervised learning:
+## Relation to Supervised Machine Learning
 
-- The environment asks agent a question and then provides the right answer
-- The agent predicts
+### In Supervised Learning:
+
+- The environment asks agent a question
+- The agent tried to predict the answer
+- The environment provides the right answer
 - Prediction of agent is compared to the right answer and a loss is computed
 
-In Reinforcement learning:
+### In Reinforcement Learning:
 
 - The environment is in a state, which depends on previous actions of the agent
 - The agent takes action
 - The agent receives cost from a distribution which is unknown to the agent
 
-So: **Agent does not have full access to the function she is trying to
-optimize, and therefore must query it through interaction.**
+Critical: **The agent does not have full access to the function it is trying to
+optimize, and therefore must query the function through interaction.**
 
-## Markov Decision process
-Think of this in terms of a Markov decision process (MDP)
+## Markov Decision Processes
+
+The environment in reinforcement learning can be described as a Markov Decision Process
+This relies on the Markov Property (here described as a Markov State):
+$\mathbb{P}[S_{t+1}|S_t]=\mathbb{P}[S_{t+1}|S_1...S_t]$
+ - This means:
+  - The future is independent of the past, given the present
+  - The state is a sufficient statistic of the future
+  - All previous states can be thrown away and the same result will still be calculated
+  
+## Markov Decision Processes
+
+Note: For the Markov property to hold, the environment must be fully observable
+What does this mean?
+- In a *fully observable environment*, the agent's internal state is the same as the environment's internal state
+ - i.e., the agent knows how the environment works exactly, and can therefore predict what each of its action will do with 100% accuracy
+- In a *partially observale environment*, the agent only indirectly observes the environment's state
+ - The agent must construct it's own internal state based on its belief/construction of the environment state
+ - Can be represented with a *Partially Observable Markov Decision Process*, POMDP
+Put formally, the observation at time $t$ is the same as both the agent's and environment's internal representations
+$O_t=S^a_t=S^e_t$
+
+## Markov Decision Processes
+
+Most environments (even if partially observable) can be converted into an MDP
+
+### Going from Chains to Reward Processes
+
+*Chain*: A *Markov Process* or *Chain* is a random sequence of states with the Markov property, defined by tuple:
+$\left \langle S,P \right \rangle$
+where $S$ is the (finite) state space and $P$ is the state transition matrix (matrix of state transition probabilities)
+
+## Markov Decision Processes
+
+### Going from Chains to Reward Processes
+
+*Markov Reward Process*: Add in reward values to a Markov chain.  Our tuple becomes:
+$\left \langle S,P,R,\gamma \right \rangle$
+where $R$ is a reward function and $\gamma$ is a discount factor, $\gamma \in [0,1]$
+Now that we have reward, we can calculate the total reward of a sequence/chain:
+$G_t=R_{t+1}+\gamma R_{t+2}+...=\sum_{k=0}\gamma^k R_{t+k+1}$
+
+## Markov Decision Processes
+
+### Value Functions
+
+The *State-Value Function* gives the long term value of state $s$, i.e. the expected reward if the agent starts in this state
+$v(s)=\mathbb{E}(G_t|S_t=s)$
+
 
 This MDP consists of:
 
