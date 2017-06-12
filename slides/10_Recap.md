@@ -137,14 +137,15 @@ $$Q(s_t,a_t)=Q(s_t,a_t) + \alpha_t \cdot (R_{t+1}+\gamma \max_a Q(s_{t+1},a) - Q
 ### DQN
 
 - Uses a neural network to learn $Q^*$
-- Can be thought of as calculating just a row of WHAT in the Q-table, then taking the max (instead of calculating the whole table)
-- MoREEEEEEEEEEEEEEE
+- Can be thought of as looking at a state row in the Q-table, then taking the argmax
 
 ### Continuous Actions
 
 - If we can't (or don't want to) discretize the action space, the Q-table becomes incalculable
 - Would equate to an infinite length table
 - Therefore, Q-learning (and by extension DQN) will not work when dealing with continuous actions
+
+![Q-Table](gfx/continuousq.jpg)
 
 ## Q-Learning -- Deterministic Policies
 
@@ -193,15 +194,15 @@ To follow everything to come, it is necessary to have a general grasp of the fol
 
 ### Types of Reinforcement Algorithms
 
-* Value Based
+- Value Based
   * No policy (implicit)
   * Value function
-* Policy Based
+- Policy Based
   * Policy
   * No value function
-* **Actor-Critic**
+- **Actor-Critic**
   * Polcy
   * Value function
-* Model Based/Model Free
+- Model Based/Model Free
   * Policy and/or Value function
   * Based: has model; Free; no model
