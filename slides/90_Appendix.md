@@ -1,3 +1,5 @@
 # Thank you for your Attention
 
-## References
+## References {.allowframebreaks}
+
+\footnotesize
