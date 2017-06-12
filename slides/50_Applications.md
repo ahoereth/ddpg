@@ -70,7 +70,7 @@ Combines both a safety net and a bayesian mechanism online to deal with sudden c
 ![Safety](./slides/gfx/safety.jpg "Poker Exploitation")
 
 Youtube link: https://www.youtube.com/watch?v=WAAxyeSk2bw
-
+\columnsend
 ### 
 
 # The Cutting Edge
