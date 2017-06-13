@@ -3,6 +3,7 @@
 ## Overview
 
 We will discuss:
+
   - Robotics and Reinforcement Learning
     - Toddler
     - Safety Frameworks
@@ -10,10 +11,10 @@ We will discuss:
     - Poker
     - Multiple Agents
 
-@Tedrake2005
-@Fisac2017
-@Li2017
-@Heinrich2016
+@Tedrake2005; 
+@Fisac2017; 
+@Li2017; 
+@Heinrich2016; 
 @Lowe2017
 
 
@@ -81,9 +82,12 @@ We will discuss:
 \column{.5\textwidth}
 
 Solution:
+
 Combines both a safety net and a bayesian mechanism online to deal with sudden changes in the environment
 
-Youtube link: https://www.youtube.com/watch?v=WAAxyeSk2bw
+\vspace{\baselineskip}
+
+Youtube link: https://youtu.be/WAAxyeSk2bw
 
 \column{.50\textwidth}
 ![Safety](gfx/safety.jpg "Poker Exploitation")
@@ -95,6 +99,7 @@ Youtube link: https://www.youtube.com/watch?v=WAAxyeSk2bw
 ## The Cutting Edge
 
 Let's now look at two applications recently published (last year and last month)
+
 - Poker playing
 - Reinforcement learning with multiple agents
 
@@ -105,7 +110,7 @@ Let's now look at two applications recently published (last year and last month)
 ### Poker as an RL Problem
 
 - Imperfect information game -- the hands of other players are unknown, as well as the values of upcoming cards
-- Multi-agent zero-sum game -- Nash Equillibrium exists, but is incalculable
+- Multi-agent zero-sum game -- Nash Equilibrium exists, but is incalculable
 
 ### NFSP (Neural Fictitious Self Play)
 
@@ -136,9 +141,11 @@ Let's now look at two applications recently published (last year and last month)
 
 \column{.50\textwidth}
 
-    - Fold on every hand: -750 *mbb/h*
-    - Expert: 40-60 *mmb/h*
-    - Knowledge system based AIs: ~ -20 *mmb/h*
+Fold on every hand: -750 *mbb/h*
+
+Expert: 40-60 *mmb/h*
+
+Knowledge system based AIs: ~ -20 *mmb/h*
 
 \columnsend
 

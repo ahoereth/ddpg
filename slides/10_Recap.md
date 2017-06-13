@@ -168,39 +168,39 @@ $$Q(s_t,a_t)=Q(s_t,a_t) + \alpha_t \cdot (R_{t+1}+\gamma \max_a Q(s_{t+1},a) - Q
 
 To follow everything to come, it is necessary to have a general grasp of the following concepts:
 
-- Agent: what performs actions in the environment; wants to maximize future reward
-- Environment: where the agent resides and what gives observations and reward; altered by agent
-- Reward: $R_t$; reward at time step $t$, scalar
-- Observation: $O_t$; what the environment shows to the agent at step $t$, after an action
-- Action: $A_t$; the action taken at step $t$, performed by agent
-- History: sequence of observations, actions, and rewards up to current time step; i.e. $H_t=A_1,O_1,R_1...A_t,O_t,R_t$
-- State: a function of history; $S_t=f(H_t)$; the information used to determine what happens next
+- **Agent**: what performs actions in the environment; wants to maximize future reward
+- **Environment**: where the agent resides and what gives observations and reward; interacted with by agent
+- **Reward**: $R_t$; reward at time step $t$, scalar
+- **Observation**: $O_t$; what the environment shows to the agent at step $t$, after an action
+- **Action**: $A_t$; the action taken at step $t$, performed by agent
+- **History**: sequence of observations, actions, and rewards up to current time step; i.e. $H_t=A_1,O_1,R_1...A_t,O_t,R_t$
+- **State**: a function of history; $S_t=f(H_t)$; the information used to determine what happens next
 
 
 
 ## Some Helpful Definitions
 
-- Fully observable: the environment state equals the agent state; $S_t^a=S_t^e$; the agent knows the complete dynamics of the environment; MDP
-- Partially observable: the agent must make an assumption about the environment because it doesn't know it's dynamics
-- Model: the agent's internal representation of the environment
-- Policy: $\pi$; what the agent uses to map states to actions; tells the agent what to do
-- Deterministic policy: a state will always lead to a certain action; $a=\pi(s)$
-- Stochastic policy: a state will yield a probability of actions to choose from; $\pi(a|s)=\mathbb{P}(A=a|S=s)$
-- State-Value Function: tells the value of a state based on the expected future reward
-- Action-Value Function: tells the value of an action based on expected future reward
+- **__Fully observable__**: the environment state equals the agent state; $S_t^a=S_t^e$; the agent knows the complete dynamics of the environment; MDP
+- **__Partially observable__**: the agent must make an assumption about the environment because it doesn't know it's dynamics
+- **Model**: the agent's internal representation of the environment
+- **Policy**: $\pi$; what the agent uses to map states to actions; tells the agent what to do
+- **__Deterministic policy__**: a state will always lead to a certain action; $a=\pi(s)$
+- **__Stochastic policy__**: a state will yield a probability of actions to choose from; $\pi(a|s)=\mathbb{P}(A=a|S=s)$
+- **__State-Value Function__**: tells the value of a state based on the expected future reward
+- **__Action-Value Function__**: tells the value of an action based on expected future reward
 
 
 
 ## Types of Reinforcement Algorithms
 
-- Value Based
+- Value Based (e.g. Q-Learning)
     - No policy (implicit)
     - Value function
 - Policy Based
     - Policy
     - No value function
 - **Actor-Critic**
-    - Polcy
+    - Policy
     - Value function
 - Model Based/Model Free
     - Policy and/or Value function
