@@ -2,7 +2,7 @@
 
 ## DQN & DDPG -- Code!
 
-DDPG[^ddpgtutorial] is very simillar to DQN[^dqntutorial] implementation-wise -- just with some added bells and whistles. If you plan to implement DDPG, you might want to start with DQN.
+DDPG[^ddpgtutorial] is very similar to DQN[^dqntutorial] implementation-wise -- just with some added bells and whistles. **If you plan to implement DDPG, you might want to start with DQN.**
 
   - Define an environment with observations, rewards and actions.
   - Repeatedly act in the environment using the current policy & store experiences.
@@ -19,32 +19,39 @@ import tensorflow as tf
 
 
 
-## Environments: OpenAI Gym interface
+## OpenAI Gym: Environments
 
-```python
+![OpenAI Gym Environments [@Brockman2016] [^gym]](gfx/gym.png)
+
+[^gym]: [github.com/openai/gym](https://github.com/openai/gym)
+
+
+
+## OpenAI Gym: API
+
+```{.python .numberLines}
 import gym
 ```
 
-Sensible standardized interface for RL environments. When creating custom environments, building on top of its specifications might make sense.[^gym]
+Sensible standardized interface for RL environments. When creating custom environments, building on top of its specifications might make sense.
 
-```python
+```{.python .numberLines startFrom=2}
 env = gym.make('LunarLanderContinuous-v2')
 env.observation_space  # e.g. float vector, 3D array...
 env.action_space  # e.g. integer, float vector...
 env.reset()
-env.step(env.action_space.sample())
+action = env.action_space.sample()
+state, reward, done, info = env.step(action)
 env.render()
 ```
 
-[^gym]: [gym.openai.com](https://gym.openai.com/), [github.com/openai/gym](https://github.com/openai/gym)
 
 
-
-## Environment Interaction Loop
+## Off-Policy Reinforcement Learning: Generating Samples
 
 Act in the environment following the current policy to generate experiences, store them.
 
-```python
+```{.python .numberLines}
 from collections import deque
 memory = deque([], maxlen=1e6)  # Note: Random access is O(n)!
 policy = lambda state: env.action_space.sample()
@@ -53,7 +60,7 @@ while True:
   if done:
     state = env.reset()
   action = policy(state)
-  state_, reward, done, info = env.step(action)
+  state_, reward, done, _ = env.step(action)
   memory.append((state, action, reward, state_))
   state = state_
 ```
@@ -67,7 +74,7 @@ while True:
 
 **DDPG: $Q(s,a) \rightarrow q$**
 
-**State & action to single Q value**
+**State & action to single Q value.**
 
 @Lillicrap2015
 
@@ -75,38 +82,53 @@ while True:
 
 DQN: $Q(s) \rightarrow \vec q$
 
-State to Q vector, one value per action
+State to Q vector, one value per action.
 
 @Mnih2015
 
 \columnsend
 
-```python
-def critic(s, a, name):
+```{.python .numberLines}
+def make_critic(states, actions, name):
   with tf.variable_scope(name) as scope:
-    net = tf.layers.dense(s, 400, tf.nn.relu)  # Feature detection.
-    net = tf.concat([net, a], axis=1)
-    net = tf.layers.dense(net, 300, tf.nn.relu)  # Value estimation.
+    net = tf.layers.dense(states, 400, tf.nn.relu)  # Feature extract
+    net = tf.concat([net, actions], axis=1)
+    net = tf.layers.dense(net, 300, tf.nn.relu)  # Value estimate
     q = tf.layers.dense(net, 1)  # shape (BATCHSIZE, 1)
     return tf.squeeze(q), get_variables(scope)
-qvalues,  thetaQ  = critic(states,  actions, 'online')
-qvalues_, thetaQ_ = critic(states_, actions_, 'target')
 ```
 
 
 
-## Training the Critic (Bellman Equation & MSE)
+## Training Q-Networks: Bellman Approximation
 
-Exactly like in DQN, the critic is optimized to minimize the mean squared error loss between its output and the Bellman approximation. **Note:** No greedy next Q!
+DQN vs. DDQN vs. DDPG -- fine differences in estimating future reward.
+
+\setlength\abovedisplayskip{-1.25em}
+
+\begin{align}
+y^{DQN} &= r_t + \gamma max_a Q'(s_{t+1},a|\theta^{Q'}) & \text{Greedy estimate.} \\
+y^{DDQN} &= r_t + \gamma Q'(s_{t+1}, argmax_a Q(s_{t+1}, a)) & \text{Estimate by online policy.} \\
+y^{DDPG} &= r_t + \gamma Q'(s_{t+1},\mu'(s_{t+1}|\theta^{\mu'})|\theta^{Q'}) & \text{Estimate by detached policy.}
+\end{align}
+
+@Mnih2015, @Hasselt2016, @Lillicrap2015
+
+
+
+## Training the DDPG Critic: Bellman Approximation & Mean Squared Error
+
+The critic is optimized to minimize the mean squared error loss between its output and the Bellman approximation.
 
 \setlength\abovedisplayskip{-1.25em}
 \begin{align}
-y_t^{DQN} &=r_t + \gamma max_a Q'(s_{t+1},a|\theta^{Q'}) & \text{original DQN target} \\
-y_t^{DDPG} &=r_t + \gamma Q'(s_{t+1},\mu'(s_{t+1}|\theta^{\mu'})|\theta^{Q'}) & \text{DDPG critic target} \\
-L_t(s_t, a_t) &= \frac{1}{N} \sum^N (Q(s_t, a_t|\theta^{Q}) - y_t^{DDPG})^2 & \text{critic network loss}
+y &= r_t + \gamma Q'(s_{t+1},\mu'(s_{t+1}|\theta^{\mu'})|\theta^{Q'}) & \text{Critic Target} \\
+\mathbb{L} &= \frac{1}{N} \sum^N (Q(s_t, a_t|\theta^{Q}) - y)^2 & \text{Critic Loss}
 \end{align}
 
-```python
+```{.python .numberLines}
+# critic, _ = make_critic(states, actions, 'online')
+# critic_, _ = make_critic(states_, actor_, 'target')
 def train_critic(critic, critic_, terminals, rewards):
   targets = tf.where(terminals, rewards, rewards + .99 * critic_)
   mse = tf.reduce_mean(tf.squared(targets - critic))
@@ -124,53 +146,79 @@ def train_critic(critic, critic_, terminals, rewards):
 
 **Vector of continues action values.**
 
+@Lillicrap2015
+
 \column{.45\textwidth}
 
 DQN: $argmax_a Q(s, a) \rightarrow a$
 
 Greedy discrete action selection.
 
+@Mnih2015
+
 \columnsend
 
 
-```python
-def actor(states, dim_out, name):
+```{.python .numberLines}
+def make_actor(states, n_actions, name):
   with tf.variable_scope(name) as scope:
     net = dense(states, 400, tf.nn.relu)
     net = dense(net, 300, tf.nn.relu)
-    y = dense(net, dim_out, tf.nn.tanh)  # Action scaling.
+    y = dense(net, n_actions, tf.nn.tanh)  # Action scaling.
     return y, get_variables(scope)
-actions  = actor(states)
-actions_ = actor(states_)
 ```
+
+<!--
+actor, thetaMu = make_actor(states, 3, 'online')
+actor_, thetaMu_ = make_actor(states_, 3, 'target')
+-->
 
 
 
 ## Training the Actor (Policy Gradient Ascent)
 
+Ascend the gradients of the critic network with respect to the online actor's actions.
 
 \setlength\abovedisplayskip{-1.25em}
+
 \begin{align}
 \Delta_{\theta, \mu}J \approx& \Delta_{\theta^\mu} Q(s_t, a|\theta^Q) & a = \mu(s_t|\theta^\mu) \\
 =& \Delta_a\ \,Q(s_t, a|\theta^Q) \Delta_{\theta^\mu} a & F'(x) = f'(g(x))g'(x)
 \end{align}
 
 
-```python
+```{.python .numberLines}
+# actor, thetaMu = make_actor(states, 4, 'online')
+# critic, _ = make_critic(states, actor, 'online')
 def train_actor(actor, thetaMu, critic):
   value_gradient, = tf.gradients(critic, actor)
   policy_gradients = tf.gradients(actor, thetaMu, -value_gradient)
-  optimizer = tf.train.AdamOptimizer(1e-4)
-  return optimizer.apply_gradients(zip(policy_gradients, thetaMu))
+  mapping = zip(policy_gradients, thetaMu)
+  return tf.train.AdamOptimizer(1e-4).apply_gradients(mapping)
 ```
+
 
 
 ## Target Network Updates
 
-  - Soft Updates
-  - tf.assign / tf.Variable.assign for target networks
+```{.python .numberLines}
+# _, theta = make_critic(states, actions, 'online')
+# _, theta_ = make_critic(states_, actor_, 'target')
+```
 
+**Hard Updates**: Common in DQN implementations and on initial initialization.
 
+```{.python .numberLines startFrom=3}
+def make_hard_update(theta, theta_):
+  return [v_.assign(v) for v, v_ in zip(theta, theta_)]
+```
+
+**Soft updates**: Slowly follow online parameters, prevents oscillation.
+
+```{.python .numberLines startFrom=5}
+def make_soft_update(theta, theta_, tau=1e-3):
+  return [v_.assign_sub(tau * v) for v, v_ in zip(theta, theta_)]
+```
 
 ## Maybe
 
@@ -203,6 +251,7 @@ def train_actor(actor, thetaMu, critic):
     - Previously implemented by Alex: Prioritized Replay using a Binary Sum Tree
 
 @Schaul2015
+
 
 
 ## Maybe cont.
