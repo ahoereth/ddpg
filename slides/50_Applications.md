@@ -2,27 +2,16 @@
 
 ## Overview
 
+We will discuss:
   - Robotics and Reinforcement Learning
-  - Cutting Edge Applications of Reinforcement Learning
-
-
-
-## Robotics and Reinforcement Learning
-
-### The General Problem of Robotics
-  - Examples
     - Toddler
-    - Safety Framework
+    - Safety Frameworks
+  - Cutting Edge Applications of Reinforcement Learning
+    - Poker
+    - Multiple Agents
 
 @Tedrake2005
 @Fisac2017
-
-
-
-## Cutting Edge Applications of Reinforcement Learning
-  - Poker
-  - Multiple Agents
-
 @Li2017
 @Heinrich2016
 @Lowe2017
@@ -63,7 +52,6 @@
 ### The Algorithm
 
 - Uses an Actor-Critic reinforcement learning setup
-- Learns online
 - No world knowledge of the environment
 
 
@@ -73,9 +61,9 @@
 ### Results
 
 - Within one minute, the robot reaches the minimum definition of walking by the researchers:
-  - "...foot clearance on nearly every step"
+    - "...foot clearance on nearly every step"
 - Within 20 minutes, it learns a robust gait
-  - This equates to around 960 steps (.8 Hz)
+    - This equates to around 960 steps (.8 Hz)
 
 
 
@@ -94,6 +82,7 @@
 
 Solution:
 Combines both a safety net and a bayesian mechanism online to deal with sudden changes in the environment
+
 Youtube link: https://www.youtube.com/watch?v=WAAxyeSk2bw
 
 \column{.50\textwidth}
@@ -105,9 +94,9 @@ Youtube link: https://www.youtube.com/watch?v=WAAxyeSk2bw
 
 ## The Cutting Edge
 
-- Let's now look at two applications recently published (last year and last month)
-  - Poker playing
-  - Reinforcement learning with multiple agents
+Let's now look at two applications recently published (last year and last month)
+- Poker playing
+- Reinforcement learning with multiple agents
 
 
 
@@ -121,17 +110,17 @@ Youtube link: https://www.youtube.com/watch?v=WAAxyeSk2bw
 ### NFSP (Neural Fictitious Self Play)
 
 - Applying neural networks to the concept of "Fictitious Self Play"
-  - FSP = Choose the best response to the opponent's average behavior
+    - FSP = Choose the best response to the opponent's average behavior
 - Approaches Nash Equilibrium as it learns
 
 
 
 ## NFSP Poker: Architecture
 
-- Remembers state transitions and its best responses in two separate memories $M_RL$ and $M_SL$
-  - State transitions used in RL; Best responses used for supervised learning
-- $M_RL$ uses an off-policy deep RL algorithm to learn the best policy from the state transitions
-- $M_SL$ uses a feedforward net to learn the average play (in order to do fictitious self play)
+- Remembers state transitions and the agent's best responses in two separate memories $M_{RL}$ and $M_{SL}$
+    - State transitions used for RL; Best responses used for supervised learning
+- $M_{RL}$ uses an off-policy deep RL algorithm to learn the best policy from the state transitions
+- $M_{SL}$ uses a feedforward net to learn the average play (in order to do fictitious self play)
 - Target network for stability and has an explore parameter
 
 
@@ -147,9 +136,9 @@ Youtube link: https://www.youtube.com/watch?v=WAAxyeSk2bw
 
 \column{.50\textwidth}
 
-- Fold on every hand: -750 *mbb/h*
-- Expert: 40-60 *mmb/h*
-- Knowledge system based AIs: ~ -20 *mmb/h*
+    - Fold on every hand: -750 *mbb/h*
+    - Expert: 40-60 *mmb/h*
+    - Knowledge system based AIs: ~ -20 *mmb/h*
 
 \columnsend
 

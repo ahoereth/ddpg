@@ -16,8 +16,8 @@ The environment in reinforcement learning can be described as a Markov Decision 
 
 This relies on the Markov Property (here described as a Markov State):
 $$\mathbb{P}[S_{t+1}|S_t]=\mathbb{P}[S_{t+1}|S_1...S_t]$$
-
 This means:
+
 - The future is independent of the past, given the present
 - The state is a sufficient statistic of the future
 - All previous states can be thrown away and the same result will still be calculated
@@ -26,18 +26,15 @@ Note: For the Markov property to hold, the environment must be fully observable.
 
 
 
-## Markov Decision Processes
-
-What does this mean?
+## MDP: Observability
 
 - In a *fully observable environment*, the agent's internal state is the same as the environment's internal state
-  - i.e., the agent knows how the environment works exactly, and can therefore predict what each of its action will do with 100% accuracy
+    - i.e., the agent knows how the environment works exactly, and can therefore predict what each of its action will do with 100% accuracy
+    - Put formally, the observation at time $t$ is the same as both the agent's and environment's internal representations $O_t=S^a_t=S^e_t$
+    - Can be represented with an MDP
 - In a *partially observale environment*, the agent only indirectly observes the environment's state
-  - The agent must construct it's own internal state based on its belief/construction of the environment state
-  - Can be represented with a *Partially Observable Markov Decision Process*, POMDP
-
-Put formally, the observation at time $t$ is the same as both the agent's and environment's internal representations
-$O_t=S^a_t=S^e_t$
+    - The agent must construct it's own internal state based on its belief/construction of the environment state
+    - Can be represented with a *Partially Observable Markov Decision Process*, POMDP
 
 
 
@@ -73,9 +70,7 @@ We have to take the expectation because $G_t$ is random; we need to know the exp
 
 ## MDP: Now to the Markov Decision Process
 
-Up until now, actions have been completely random
-
-Now we add a policy to choose actions
+Up until now, actions have been completely random--now we add a policy to choose actions
 
 It can be described as an "MRP with decisions."  We add in the agent to our tuple representation:
 $$\left \langle S,A,P,R,\gamma \right \rangle$$
@@ -91,15 +86,15 @@ Reminder: A *policy* is a function mapping states to actions; it tells the agent
 
 ## MDP: Value Functions Revisited
 
-The *State-Value Function* remains mostly the same in MDP as in MRP, except it depends on the policy:
+- The *State-Value Function* remains mostly the same in MDP as in MRP, except it depends on the policy:
 $$V^\pi(s)=\mathbb{E_\pi}(G_t|S_t)$$
 
-"The expectation when we sample all actions according to this policy $\pi$"; the value of a state
+  "The expectation when we sample all actions according to this policy $\pi$"; the value of a state
 
-The *Action-Value Function* is defined as how good it is to take a particular action when the agent is in a particular state:
+- The *Action-Value Function* is defined as how good it is to take a particular action when the agent is in a particular state:
 $$Q^\pi(s,a)=\mathbb{E_\pi}(G_t|S_t=s, A_t=a)$$
 
-"The expected return starting from state $s$, taking action $a$, and then following policy $\pi$"; the value of an action
+  "The expected return starting from state $s$, taking action $a$, and then following policy $\pi$"; the value of an action
 
 Note: we can also define these as recursive *Bellman Equations* where they refer to themselves instead of with $G_t$
 
@@ -114,7 +109,7 @@ $$Q^*(s,a)=R_s^a+\gamma \sum_{s'\in S} P_{ss'}^a V^*(s')$$
 We can nest these to get:
 $$Q^*(s,a)=R_s^a+\gamma \sum_{s'\in S} P_{ss'}^a \max_a Q^*(s,a)$$
 
-This is the *Bellman Optimality Equation* (note: it can be nested in the other direction too to solve for $v_*(s)$)
+This is the *Bellman Optimality Equation* (note: it can be nested in the other direction too to solve for $V_*(s)$)
 
 Solve this, and the reinforcement learning problem is solved.
 
@@ -145,7 +140,13 @@ $$Q(s_t,a_t)=Q(s_t,a_t) + \alpha_t \cdot (R_{t+1}+\gamma \max_a Q(s_{t+1},a) - Q
 - Would equate to an infinite length table
 - Therefore, Q-learning (and by extension DQN) will not work when dealing with continuous actions
 
+
+
+## Q-Learning
+
 ![Q-Table](gfx/continuousq.jpg)
+
+
 
 ## Q-Learning -- Deterministic Policies
 
@@ -154,7 +155,7 @@ $$Q(s_t,a_t)=Q(s_t,a_t) + \alpha_t \cdot (R_{t+1}+\gamma \max_a Q(s_{t+1},a) - Q
 
 - A deterministic policy can lead an agent into an infinite loop
 - Imagine this rule from some policy:
-  - "Whenever there is a wall to the north and south, go left"
+    - "Whenever there is a wall to the north and south, go left"
 - If we applied this policy to the problem pictured, the agent would get stuck
 - This can be solved by using a stochastic policy and leaving $\gamma$ active during test time
 
@@ -190,19 +191,17 @@ To follow everything to come, it is necessary to have a general grasp of the fol
 
 
 
-## Some Helpful Definitions
-
-### Types of Reinforcement Algorithms
+## Types of Reinforcement Algorithms
 
 - Value Based
-  * No policy (implicit)
-  * Value function
+    - No policy (implicit)
+    - Value function
 - Policy Based
-  * Policy
-  * No value function
+    - Policy
+    - No value function
 - **Actor-Critic**
-  * Polcy
-  * Value function
+    - Polcy
+    - Value function
 - Model Based/Model Free
-  * Policy and/or Value function
-  * Based: has model; Free; no model
+    - Policy and/or Value function
+    - Based: has model; Free; no model
