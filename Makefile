@@ -7,6 +7,7 @@ SIZE?=64
 		-t beamer \
 		--latex-engine=pdflatex \
 		--bibliography=library.bib \
+		--csl=apa.csl \
 		--highlight-style tango \
 		--slide-level=2 \
 		-o slides.pdf \

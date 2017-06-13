@@ -29,6 +29,6 @@ header-includes:
     - \usepackage[all]{nowidow}
     - \newcommand{\columnsbegin}{\begin{columns}}
     - \newcommand{\columnsend}{\end{columns}}
-    - \usepackage[all]{nowidow}
-    - \widowpenalties 1 1000
+    - \widowpenalties 1 100000
+    # - \clubpenalty 10000
 ...

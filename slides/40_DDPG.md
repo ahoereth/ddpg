@@ -69,11 +69,15 @@ while True:
 
 **State & action to single Q value**
 
+@Lillicrap2015
+
 \column{.45\textwidth}
 
 DQN: $Q(s) \rightarrow \vec q$
 
 State to Q vector, one value per action
+
+@Mnih2015
 
 \columnsend
 
@@ -144,9 +148,20 @@ actions_ = actor(states_)
 
 ## Training the Actor (Policy Gradient Ascent)
 
+
+\setlength\abovedisplayskip{-1.25em}
+\begin{align}
+\Delta_{\theta, \mu}J \approx& \Delta_{\theta^\mu} Q(s_t, a|\theta^Q) & a = \mu(s_t|\theta^\mu) \\
+=& \Delta_a\ \,Q(s_t, a|\theta^Q) \Delta_{\theta^\mu} a & F'(x) = f'(g(x))g'(x)
+\end{align}
+
+
 ```python
-action_gradient, = tf.gradients(critic.y, actions)
-policy_gradients = tf.gradients(actor.y, actor.vars, -action_gradient)
+def train_actor(actor, thetaMu, critic):
+  value_gradient, = tf.gradients(critic, actor)
+  policy_gradients = tf.gradients(actor, thetaMu, -value_gradient)
+  optimizer = tf.train.AdamOptimizer(1e-4)
+  return optimizer.apply_gradients(zip(policy_gradients, thetaMu))
 ```
 
 
