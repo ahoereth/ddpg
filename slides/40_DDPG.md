@@ -70,6 +70,7 @@ while True:
 ## The Critic (aka Value Network)
 
 \columnsbegin
+
 \column{.45\textwidth}
 
 **DDPG: $Q(s,a) \rightarrow q$**
@@ -140,6 +141,7 @@ def train_critic(critic, critic_, terminals, rewards):
 ## The Actor (aka Policy Network)
 
 \columnsbegin
+
 \column{.45\textwidth}
 
 **DDPG: $\mu(s) \rightarrow a$**
@@ -220,20 +222,31 @@ def make_soft_update(theta, theta_, tau=1e-3):
   return [v_.assign_sub(tau * v) for v, v_ in zip(theta, theta_)]
 ```
 
-## Maybe
 
-### Exploration
-  - What are different ways of exploration?
-  - Balance between exploration/exploitation?
-  - Expert Knowledge?
 
-### Ornstein-Uhlenbeck Process
-  - In which environments is this great?
-  - Gauss-Markov Process
-  - Brownian Particles
-  - Wiener Process
+## Exploration in Continuous Environments
 
-@Uhlenbeck1930
+\columnsbegin
+
+\column{.5\textwidth}
+
+**DQN:** $\epsilon$-greedy -- only for discrete actions.
+
+**DDPG:** Gaussian continuous through time with friction $\theta$ and diffusion $\sigma$ [@Uhlenbeck1930].
+
+\column{.45\textwidth}
+
+![Examplatory Process](gfx/ouprocess.png){height=50%}
+
+\columnsend
+
+
+```{.python .numberLines}
+def noise(n, theta=.15, sigma=.2):
+  state = tf.Variable(tf.zeros((n,)))
+  noise = -theta * state + sigma * tf.random_normal((n,))
+  return state.assign_add(noise)
+```
 
 
 
