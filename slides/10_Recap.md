@@ -8,13 +8,14 @@
 - The agent is to complete some task and receive reward
 - It solves this task over some amount of time steps
 
+@Silverslides
 
 
 ## Markov Decision Processes
 
-The environment in reinforcement learning can be described as a Markov Decision Process
+The environment in RL can be described as a Markov Decision Process
 
-This relies on the Markov Property (here described as a Markov State):
+This relies on what's called a Markov State:
 $$\mathbb{P}[S_{t+1}|S_t]=\mathbb{P}[S_{t+1}|S_1...S_t]$$
 This means:
 
@@ -32,12 +33,12 @@ Note: For the Markov property to hold, the environment must be fully observable.
     - i.e., the agent knows how the environment works exactly, and can therefore predict what each of its action will do with 100% accuracy
     - Put formally, the observation at time $t$ is the same as both the agent's and environment's internal representations $O_t=S^a_t=S^e_t$
     - Can be represented with an MDP
-- In a *partially observale environment*, the agent only indirectly observes the environment's state
+- In a *partially observable environment*, the agent only indirectly observes the environment's state
     - The agent must construct it's own internal state based on its belief/construction of the environment state
     - Can be represented with a *Partially Observable Markov Decision Process*, POMDP
 
 
-
+<!--
 ## MDP: From Chains to Reward Processes
 
 *Chain*: A *Markov Process* or *Chain* is a random sequence of states with the Markov property, defined by tuple:
@@ -67,42 +68,44 @@ $$V(s)=\mathbb{E}(G_t|S_t=s)$$
 We have to take the expectation because $G_t$ is random; we need to know the expected value based on all random permutations of traversals through the Markov process
 
 
-
+-->
 ## MDP: Now to the Markov Decision Process
 
-Up until now, actions have been completely random--now we add a policy to choose actions
+*"Decision"* in *Markov* ***Decision*** *Process* means that actions need to be chosen--therefore, we add a policy to choose actions
 
-It can be described as an "MRP with decisions."  We add in the agent to our tuple representation:
+An MDP can be represented as a tuple::
 $$\left \langle S,A,P,R,\gamma \right \rangle$$
+where:
 
-where $A$ is a finite set of actions
+$S$ is the (finite) state space
 
-$P$ and $R$ now depend on actions taken; formally:
-$$P_{ss'}^a=\mathbb{P}(R_{t+1}|S_t=s, A=a)$$
-$$R_{s}^a=\mathbb{E}(R_{t+1}|S_t=s, A=a)$$
+$A$ is a finite set of actions
 
-Reminder: A *policy* is a function mapping states to actions; it tells the agent what to do given the state
+$P$ is the state transition matrix (matrix of state transition probabilities)
+
+$R$ is a reward function
+
+$\gamma$ is a discount factor, $\gamma \in [0,1]$
 
 
-## MDP: Value Functions Revisited
 
-- The *State-Value Function* remains mostly the same in MDP as in MRP, except it depends on the policy:
+## MDP: Value Functions
+
+The *State-Value Function* depends on the policy, and determines how good it is to be in a given state:
 $$V^\pi(s)=\mathbb{E_\pi}(G_t|S_t)$$
 
-  "The expectation when we sample all actions according to this policy $\pi$"; the value of a state
+*"The expectation when we sample all actions according to this policy $\pi$"; the value of a state*
 
-- The *Action-Value Function* is defined as how good it is to take a particular action when the agent is in a particular state:
+The *Action-Value Function* is defined as how good it is to take a particular action when the agent is in a particular state:
 $$Q^\pi(s,a)=\mathbb{E_\pi}(G_t|S_t=s, A_t=a)$$
 
-  "The expected return starting from state $s$, taking action $a$, and then following policy $\pi$"; the value of an action
-
-Note: we can also define these as recursive *Bellman Equations* where they refer to themselves instead of with $G_t$
+*"The expected return starting from state $s$, taking action $a$, and then following policy $\pi$"; the value of an action*
 
 
 
 ## MDP: Solving Reinforcement Learning
 
-We want to maximize the value of our actions based on future reward, therefore (* denotes max/optimal function):
+We want to maximize the value of our actions based on future reward, therefore (* denotes max/optimal function): FIXTHISFIXTHISFIXTHISFIXTHISFIXTHISFIXTHIS
 $$V^*(s)=\max_a Q^*(s,a)$$
 $$Q^*(s,a)=R_s^a+\gamma \sum_{s'\in S} P_{ss'}^a V^*(s')$$
 
@@ -122,7 +125,7 @@ Method to solve $Q^*$
 - Iteratively act through *episodes*
 - Backpropagate reward in order to calculate Q values which tell the values of actions
 - Take the maximum Q value at each time step
-- Stores Q values into a table
+- Store Q values into a table
 $$Q(s_t,a_t)=Q(s_t,a_t) + \alpha_t \cdot (R_{t+1}+\gamma \max_a Q(s_{t+1},a) - Q(s_t,a_t))$$
 
 
@@ -136,8 +139,9 @@ $$Q(s_t,a_t)=Q(s_t,a_t) + \alpha_t \cdot (R_{t+1}+\gamma \max_a Q(s_{t+1},a) - Q
 
 ### Continuous Actions
 
-- If we can't (or don't want to) discretize the action space, the Q-table becomes incalculable
-- Would equate to an infinite length table
+- Discretizing the action space almost always leads to combinatorial explosion:
+    - Consider discretizing the human arm (7-DoF) into Up/Straight/Down--$3^7=2187$ dimensional action space
+- If we can't (or don't want to) discretize the action space, the Q-table becomes incalculable (would equate to an infinite length table)
 - Therefore, Q-learning (and by extension DQN) will not work when dealing with continuous actions
 
 
@@ -162,6 +166,7 @@ $$Q(s_t,a_t)=Q(s_t,a_t) + \alpha_t \cdot (R_{t+1}+\gamma \max_a Q(s_{t+1},a) - Q
 \column{.50\textwidth}
 
 ![Deterministic Failure](gfx/gridworld.jpg)
+
 \columnsend
 
 ## Some Helpful Definitions
@@ -171,7 +176,7 @@ To follow everything to come, it is necessary to have a general grasp of the fol
 - **Agent**: what performs actions in the environment; wants to maximize future reward
 - **Environment**: where the agent resides and what gives observations and reward; interacted with by agent
 - **Reward**: $R_t$; reward at time step $t$, scalar
-- **Observation**: $O_t$; what the environment shows to the agent at step $t$, after an action
+- **Observation**: $O_t$; what the environment shows the agent at step $t$, after an action
 - **Action**: $A_t$; the action taken at step $t$, performed by agent
 - **History**: sequence of observations, actions, and rewards up to current time step; i.e. $H_t=A_1,O_1,R_1...A_t,O_t,R_t$
 - **State**: a function of history; $S_t=f(H_t)$; the information used to determine what happens next
@@ -180,14 +185,14 @@ To follow everything to come, it is necessary to have a general grasp of the fol
 
 ## Some Helpful Definitions
 
-- **__Fully observable__**: the environment state equals the agent state; $S_t^a=S_t^e$; the agent knows the complete dynamics of the environment; MDP
-- **__Partially observable__**: the agent must make an assumption about the environment because it doesn't know it's dynamics
+- ***Fully observable***: the environment state equals the agent state; $S_t^a=S_t^e$; the agent knows the complete dynamics of the environment; MDP
+- ***Partially observable***: the agent must make an assumption about the environment because it doesn't know it's dynamics
 - **Model**: the agent's internal representation of the environment
 - **Policy**: $\pi$; what the agent uses to map states to actions; tells the agent what to do
-- **__Deterministic policy__**: a state will always lead to a certain action; $a=\pi(s)$
-- **__Stochastic policy__**: a state will yield a probability of actions to choose from; $\pi(a|s)=\mathbb{P}(A=a|S=s)$
-- **__State-Value Function__**: tells the value of a state based on the expected future reward
-- **__Action-Value Function__**: tells the value of an action based on expected future reward
+- ***Deterministic policy***: a state will always lead to a certain action; $a=\pi(s)$
+- ***Stochastic policy***: a state will yield a probability of actions to choose from; $\pi(a|s)=\mathbb{P}(A=a|S=s)$
+- ***State-Value Function***: tells the value of a state based on the expected future reward
+- ***Action-Value Function***: tells the value of an action based on expected future reward
 
 
 
@@ -199,7 +204,7 @@ To follow everything to come, it is necessary to have a general grasp of the fol
 - Policy Based
     - Policy
     - No value function
-- **Actor-Critic**
+- ***Actor-Critic***
     - Policy
     - Value function
 - Model Based/Model Free
