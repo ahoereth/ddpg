@@ -73,7 +73,7 @@ We have to take the expectation because $G_t$ is random; we need to know the exp
 
 *"Decision"* in *Markov* ***Decision*** *Process* means that actions need to be chosen--therefore, we add a policy to choose actions
 
-An MDP can be represented as a tuple::
+An MDP can be represented as a tuple:
 $$\left \langle S,A,P,R,\gamma \right \rangle$$
 where:
 
@@ -92,12 +92,12 @@ $\gamma$ is a discount factor, $\gamma \in [0,1]$
 ## MDP: Value Functions
 
 The *State-Value Function* depends on the policy, and determines how good it is to be in a given state:
-$$V^\pi(s)=\mathbb{E_\pi}(G_t|S_t)$$
+$$V^\pi(s)=\mathbb{E_\pi}(R_{t+1}+\gamma R_{t+2}+\gamma^2R_{t+3}+...|S_t)$$
 
 *"The expectation when we sample all actions according to this policy $\pi$"; the value of a state*
 
 The *Action-Value Function* is defined as how good it is to take a particular action when the agent is in a particular state:
-$$Q^\pi(s,a)=\mathbb{E_\pi}(G_t|S_t=s, A_t=a)$$
+$$Q^\pi(s,a)=\mathbb{E_\pi}(\sum_{k=0}\gamma^k R_{t+k+1}|S_t=s, A_t=a)$$
 
 *"The expected return starting from state $s$, taking action $a$, and then following policy $\pi$"; the value of an action*
 
@@ -105,14 +105,14 @@ $$Q^\pi(s,a)=\mathbb{E_\pi}(G_t|S_t=s, A_t=a)$$
 
 ## MDP: Solving Reinforcement Learning
 
-We want to maximize the value of our actions based on future reward, therefore (* denotes max/optimal function): FIXTHISFIXTHISFIXTHISFIXTHISFIXTHISFIXTHIS
+We want to maximize the value of our actions based on future reward:
 $$V^*(s)=\max_a Q^*(s,a)$$
 $$Q^*(s,a)=R_s^a+\gamma \sum_{s'\in S} P_{ss'}^a V^*(s')$$
 
 We can nest these to get:
 $$Q^*(s,a)=R_s^a+\gamma \sum_{s'\in S} P_{ss'}^a \max_a Q^*(s,a)$$
 
-This is the *Bellman Optimality Equation* (note: it can be nested in the other direction too to solve for $V_*(s)$)
+This is the *Bellman Optimality Equation* (note: it can be nested in the other direction too to solve for $V^*(s)$)
 
 Solve this, and the reinforcement learning problem is solved.
 
@@ -123,7 +123,7 @@ Solve this, and the reinforcement learning problem is solved.
 Method to solve $Q^*$
 
 - Iteratively act through *episodes*
-- Backpropagate reward in order to calculate Q values which tell the values of actions
+- *"Backpropagate"* reward in order to calculate Q values which tell the values of actions
 - Take the maximum Q value at each time step
 - Store Q values into a table
 $$Q(s_t,a_t)=Q(s_t,a_t) + \alpha_t \cdot (R_{t+1}+\gamma \max_a Q(s_{t+1},a) - Q(s_t,a_t))$$
@@ -134,7 +134,7 @@ $$Q(s_t,a_t)=Q(s_t,a_t) + \alpha_t \cdot (R_{t+1}+\gamma \max_a Q(s_{t+1},a) - Q
 
 ### DQN
 
-- Uses a neural network to learn $Q^*$
+- Uses a neural network to approximate $Q^*$
 - Can be thought of as looking at a state row in the Q-table, then taking the argmax
 
 ### Continuous Actions
@@ -161,7 +161,7 @@ $$Q(s_t,a_t)=Q(s_t,a_t) + \alpha_t \cdot (R_{t+1}+\gamma \max_a Q(s_{t+1},a) - Q
 - Imagine this rule from some policy:
     - "Whenever there is a wall to the north and south, go left"
 - If we applied this policy to the problem pictured, the agent would get stuck
-- This can be solved by using a stochastic policy and leaving $\gamma$ active during test time
+- This can be solved by using a stochastic policy and leaving $\epsilon$ active during test time
 
 \column{.50\textwidth}
 
@@ -201,10 +201,10 @@ To follow everything to come, it is necessary to have a general grasp of the fol
 - Value Based (e.g. Q-Learning)
     - No policy (implicit)
     - Value function
-- Policy Based
+- Policy Based (e.g. Policy Gradient)
     - Policy
     - No value function
-- ***Actor-Critic***
+- ***Actor-Critic*** (e.g. DDPG)
     - Policy
     - Value function
 - Model Based/Model Free
