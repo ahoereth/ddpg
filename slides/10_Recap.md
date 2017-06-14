@@ -185,11 +185,11 @@ To follow everything to come, it is necessary to have a general grasp of the fol
 
 ## Some Helpful Definitions
 
-- ***Fully observable***: the environment state equals the agent state; $S_t^a=S_t^e$; the agent knows the complete dynamics of the environment; MDP
+- ***Fully observable***: the environment state equals the agent state; $S_t^a=S_t^e$; the agent knows the complete dynamics of the environment
 - ***Partially observable***: the agent must make an assumption about the environment because it doesn't know it's dynamics
 - **Model**: the agent's internal representation of the environment
 - **Policy**: $\pi$; what the agent uses to map states to actions; tells the agent what to do
-- ***Deterministic policy***: a state will always lead to a certain action; $a=\pi(s)$
+- ***Deterministic policy***: a state will always lead to a certain action; $\pi(s)=a$
 - ***Stochastic policy***: a state will yield a probability of actions to choose from; $\pi(a|s)=\mathbb{P}(A=a|S=s)$
 - ***State-Value Function***: tells the value of a state based on the expected future reward
 - ***Action-Value Function***: tells the value of an action based on expected future reward
@@ -200,13 +200,13 @@ To follow everything to come, it is necessary to have a general grasp of the fol
 
 - Value Based (e.g. Q-Learning)
     - No policy (implicit)
-    - Value function
+    - Learnt Value function
 - Policy Based (e.g. Policy Gradient)
-    - Policy
+    - Learnt Policy
     - No value function
 - ***Actor-Critic*** (e.g. DDPG)
-    - Policy
-    - Value function
+    - Learnt Policy
+    - Learnt Value function
 - Model Based/Model Free
-    - Policy and/or Value function
+    - Learnt Policy and/or Value function
     - Based: has model; Free; no model
