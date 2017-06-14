@@ -2,7 +2,7 @@
 
 ## DQN & DDPG -- Code!
 
-DDPG[^ddpgtutorial] is very similar to DQN[^dqntutorial] implementation-wise -- just with some added bells and whistles. **If you plan to implement DDPG, you might want to start with DQN.**
+DDPG is very similar to DQN implementation-wise -- just with some added bells and whistles. **If you plan to implement DDPG, you might want to start with DQN.**
 
   - Define an environment with observations, rewards and actions.
   - Repeatedly act in the environment using the current policy & store experiences.
@@ -13,9 +13,6 @@ DDPG[^ddpgtutorial] is very similar to DQN[^dqntutorial] implementation-wise -- 
 ```python
 import tensorflow as tf
 ```
-
-[^ddpgtutorial]: [github.com/ahoereth/ddpg $\rightarrow$ DDPG.ipynb](https://github.com/ahoereth/ddpg/blob/master/DDPG-Lander.ipynb) -- **TODO:** update hyperlink
-[^dqntutorial]: [github.com/ahoereth/ddpg $\rightarrow$ DQN.ipynb](https://github.com/ahoereth/ddpg) -- **TODO:** not implemented yet
 
 
 
@@ -263,7 +260,7 @@ def noise(n, theta=.15, sigma=.2):
 
 All of the above and more at **[github.com/ahoereth/ddpg $\rightarrow$ Lander.ipynb](https://github.com/ahoereth/ddpg/blob/master/Lander.ipynb)**
 
-- Exhaustively documented. Would recommend if you are interesting in Deep RL.
+- Exhaustively documented. Would recommend if you are interested in Deep RL.
 - Critic & actor, online & target networks with soft & hard updates.
 - Batch normalization -- disabled because it didn't improve performance.
 - Threaded feeding and training:
