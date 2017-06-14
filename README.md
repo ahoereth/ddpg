@@ -11,7 +11,7 @@ Alternatively one can run the following on an AWS GPU instance for using GPU acc
 
     docker-compose up notebook-aws tensorboard
 
-The fastet was to get a instance up is using a prepared AMI (an AWS EC2 image) with the following command (adjust to your needs):
+The fastest way to get an instance up is using a prepared AMI (an AWS EC2 image) with the following command (adjust to your needs):
 
     docker-machine create letsplay \
         --driver amazonec2 \
