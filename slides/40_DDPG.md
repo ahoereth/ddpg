@@ -170,11 +170,6 @@ def make_actor(states, n_actions, name):
     return y, get_variables(scope)
 ```
 
-<!--
-actor, thetaMu = make_actor(states, 3, 'online')
-actor_, thetaMu_ = make_actor(states_, 3, 'target')
--->
-
 
 
 ## Training the Actor (Policy Gradient Ascent)
@@ -184,7 +179,7 @@ Ascend the gradients of the critic network with respect to the online actor's ac
 \setlength\abovedisplayskip{-1.25em}
 
 \begin{align}
-\Delta_{\theta, \mu}J \approx& \Delta_{\theta^\mu} Q(s_t, a|\theta^Q) & a = \mu(s_t|\theta^\mu) \\
+\Delta_{\theta^\mu}J \approx& \Delta_{\theta^\mu} Q(s_t, a|\theta^Q) & a = \mu(s_t|\theta^\mu) \\
 =& \Delta_a\ \,Q(s_t, a|\theta^Q) \Delta_{\theta^\mu} a & F'(x) = f'(g(x))g'(x)
 \end{align}
 
@@ -212,15 +207,30 @@ def train_actor(actor, thetaMu, critic):
 
 ```{.python .numberLines startFrom=3}
 def make_hard_update(theta, theta_):
-  return [v_.assign(v) for v, v_ in zip(theta, theta_)]
+  return [dst.assign(src) for src, dst in zip(theta, theta_)]
 ```
 
 **Soft updates**: Slowly follow online parameters, prevents oscillation.
 
 ```{.python .numberLines startFrom=5}
 def make_soft_update(theta, theta_, tau=1e-3):
-  return [v_.assign_sub(tau * v) for v, v_ in zip(theta, theta_)]
+  return [dst.assign(tau * src + (1 - tau) * dst)
+          for src, dst in zip(theta, theta_)]
 ```
+
+
+
+## What kind of monster did we just create?
+
+<!--
+
+Nope. No TiKz. Would probably have been prettier.
+
+https://docs.google.com/drawings/d/1D1WgQmXsJNxZn1gmLrsw5XFhftDKE7sAmPxgeNRwVM8
+
+-->
+
+![DDPG Dataflow Graph -- TensorBoard failed us](gfx/DDPG_Structure.png)
 
 
 
@@ -236,7 +246,7 @@ def make_soft_update(theta, theta_, tau=1e-3):
 
 \column{.45\textwidth}
 
-![Examplatory Process](gfx/ouprocess.png){height=50%}
+![Prototypical Process](gfx/ouprocess.png){height=50%}
 
 \columnsend
 
@@ -249,25 +259,15 @@ def noise(n, theta=.15, sigma=.2):
 ```
 
 
+## Do it yourself DDPG
 
-## Maybe cont.
+All of the above and more at **[github.com/ahoereth/ddpg $\rightarrow$ Lander.ipynb](https://github.com/ahoereth/ddpg/blob/master/Lander.ipynb)**
 
-### Experience Replay
-
-  - Why is it so important for Deep RL?
-
-### Prioritized Experience Replay
-
-  - Why is it better than uniform replay?
-  - What are problems one needs to be aware of?
-  - Maybe present an implementation?
-    - Previously implemented by Alex: Prioritized Replay using a Binary Sum Tree
-
-@Schaul2015
-
-
-
-## Maybe cont.
-
-  - Threading? (not implemented as of now)
-
+- Exhaustively documented. Would recommend if you are interesting in Deep RL.
+- Critic & actor, online & target networks with soft & hard updates.
+- Batch normalization -- disabled because it didn't improve performance.
+- Threaded feeding and training:
+    - Main thread can focus on generating new experiences.
+    - Some threads feed samples from the memory to the TensorFlow graph.
+    - Some threads train the network as scheduled by the agent.
+- TensorBoard logs with (not so pretty) graph of whats going on.
