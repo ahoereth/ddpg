@@ -1,6 +1,6 @@
 # Deep Deterministic Policy Gradient
 
-## DQN & DDPG -- Code!
+## From DQN to Deep Deterministic Policy Gradient -- Code!
 
 DDPG is very similar to DQN implementation-wise -- just with some added bells and whistles. **If you plan to implement DDPG, you might want to start with DQN.**
 
@@ -105,9 +105,9 @@ DQN vs. DDQN vs. DDPG -- fine differences in estimating future reward.
 \setlength\abovedisplayskip{-1.25em}
 
 \begin{align}
-y^{DQN} &= r_t + \gamma max_a Q'(s_{t+1},a|\theta^{Q'}) & \text{Greedy estimate.} \\
+y^{DQN} &= r_t + \gamma max_a Q'(s_{t+1},a) & \text{Greedy estimate.} \\
 y^{DDQN} &= r_t + \gamma Q'(s_{t+1}, argmax_a Q(s_{t+1}, a)) & \text{Estimate by online policy.} \\
-y^{DDPG} &= r_t + \gamma Q'(s_{t+1},\mu'(s_{t+1}|\theta^{\mu'})|\theta^{Q'}) & \text{Estimate by detached policy.}
+y^{DDPG} &= r_t + \gamma Q'(s_{t+1},\mu'(s_{t+1})) & \text{Estimate by detached policy.}
 \end{align}
 
 @Mnih2015, @Hasselt2016, @Lillicrap2015
@@ -120,8 +120,8 @@ The critic is optimized to minimize the mean squared error loss between its outp
 
 \setlength\abovedisplayskip{-1.25em}
 \begin{align}
-y &= r_t + \gamma Q'(s_{t+1},\mu'(s_{t+1}|\theta^{\mu'})|\theta^{Q'}) & \text{Critic Target} \\
-\mathbb{L} &= \frac{1}{N} \sum^N (Q(s_t, a_t|\theta^{Q}) - y)^2 & \text{Critic Loss}
+y &= r_t + \gamma Q'(s_{t+1},\mu'(s_{t+1})) & \text{Critic Target} \\
+\mathbb{L} &= \frac{1}{N} \sum^N (Q(s_t, a_t) - y)^2 & \text{Critic Loss}
 \end{align}
 
 ```{.python .numberLines}
@@ -176,8 +176,8 @@ Ascend the gradients of the critic network with respect to the online actor's ac
 \setlength\abovedisplayskip{-1.25em}
 
 \begin{align}
-\Delta_{\theta^\mu}J \approx& \Delta_{\theta^\mu} Q(s_t, a|\theta^Q) & a = \mu(s_t|\theta^\mu) \\
-=& \Delta_a\ \,Q(s_t, a|\theta^Q) \Delta_{\theta^\mu} a & F'(x) = f'(g(x))g'(x)
+\Delta_{\theta^\mu}J \approx& \Delta_{\theta^\mu} Q(s_t, a) & a = \mu(s_t|\theta^\mu) \\
+=& \Delta_a\ \,Q(s_t, a) \Delta_{\theta^\mu} a & F'(x) = f'(g(x))g'(x)
 \end{align}
 
 

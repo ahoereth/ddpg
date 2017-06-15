@@ -1,6 +1,6 @@
 ---
 title: Deep Reinforcement Learning
-subtitle: "Special Focus: Continuous Control"
+subtitle: "Special Focus: Continuous Control with Deep Deterministic Policy Gradients"
 author:
   - John Berroa
   - Felix Meyer zu Driehausen
