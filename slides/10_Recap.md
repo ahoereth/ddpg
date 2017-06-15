@@ -31,7 +31,7 @@ Note: For the Markov property to hold, the environment must be fully observable.
 
 - In a *fully observable environment*, the agent's internal state is the same as the environment's internal state
     - i.e., the agent knows how the environment works exactly, and can therefore predict what each of its action will do with 100% accuracy
-    - Put formally, the observation at time $t$ is the same as both the agent's and environment's internal representations $O_t=S^a_t=S^e_t$
+    - Put formally, the observation at time $t$ is the same as both the agent's and environment's internal representations $S^e_t=O_t=S^a_t$
     - Can be represented with an MDP
 - In a *partially observable environment*, the agent only indirectly observes the environment's state
     - The agent must construct it's own internal state based on its belief/construction of the environment state
@@ -130,7 +130,7 @@ $$Q(s_t,a_t)=Q(s_t,a_t) + \alpha_t \cdot \left(R_{t+1}+\gamma \max_a Q(s_{t+1},a
 
 
 
-## Q-Learning
+## Q-Learning -- Expanded
 
 ### DQN
 
@@ -146,7 +146,7 @@ $$Q(s_t,a_t)=Q(s_t,a_t) + \alpha_t \cdot \left(R_{t+1}+\gamma \max_a Q(s_{t+1},a
 
 
 
-## Q-Learning
+## Q-Learning -- Q-Table Example
 
 ![Q-Table](gfx/continuousq.jpg)
 
@@ -196,7 +196,7 @@ To follow everything to come, it is necessary to have a general grasp of the fol
 
 
 
-## Types of Reinforcement Algorithms
+## Some Helpful Definitions: Types of RL Algorithms
 
 - Value Based (e.g. Q-Learning)
     - No policy (implicit)
