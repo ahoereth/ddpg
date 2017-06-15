@@ -97,7 +97,7 @@ $$V^\pi(s)=\mathbb{E_\pi}(R_{t+1}+\gamma R_{t+2}+\gamma^2R_{t+3}+...|S_t)$$
 *"The expectation when we sample all actions according to this policy $\pi$"; the value of a state*
 
 The *Action-Value Function* is defined as how good it is to take a particular action when the agent is in a particular state:
-$$Q^\pi(s,a)=\mathbb{E_\pi}(\sum_{k=0}\gamma^k R_{t+k+1}|S_t=s, A_t=a)$$
+$$Q^\pi(s,a)=\mathbb{E_\pi}\left(\sum_{k=0}\gamma^k R_{t+k+1}\middle|S_t=s, A_t=a\right)$$
 
 *"The expected return starting from state $s$, taking action $a$, and then following policy $\pi$"; the value of an action*
 
@@ -126,7 +126,7 @@ Method to solve $Q^*$
 - *"Backpropagate"* reward in order to calculate Q values which tell the values of actions
 - Take the maximum Q value at each time step
 - Store Q values into a table
-$$Q(s_t,a_t)=Q(s_t,a_t) + \alpha_t \cdot (R_{t+1}+\gamma \max_a Q(s_{t+1},a) - Q(s_t,a_t))$$
+$$Q(s_t,a_t)=Q(s_t,a_t) + \alpha_t \cdot \left(R_{t+1}+\gamma \max_a Q(s_{t+1},a) - Q(s_t,a_t)\right)$$
 
 
 
@@ -140,7 +140,7 @@ $$Q(s_t,a_t)=Q(s_t,a_t) + \alpha_t \cdot (R_{t+1}+\gamma \max_a Q(s_{t+1},a) - Q
 ### Continuous Actions
 
 - Discretizing the action space almost always leads to combinatorial explosion:
-    - Consider discretizing the human arm (7-DoF) into Up/Straight/Down--$3^7=2187$ dimensional action space
+    - Consider discretizing the human arm (7-DoF) into Up/Straight/Down -- $3^7=2187$ dimensional action space
 - If we can't (or don't want to) discretize the action space, the Q-table becomes incalculable (would equate to an infinite length table)
 - Therefore, Q-learning (and by extension DQN) will not work when dealing with continuous actions
 

@@ -104,7 +104,7 @@ Let's now look at two applications recently published (last year and last month)
 ### The Problem
   - Multiple agents affect the environment
     - Agent can't accurately predict environment because it is no longer based on its policy alone
-    - Significantly increases the variability in policy gradient algorithms--this is because the reward in normal policy gradients is only conditioned on the agent's own actions
+    - Significantly increases the variability in policy gradient algorithms -- this is because the reward in normal policy gradients is only conditioned on the agent's own actions
 
 
 
