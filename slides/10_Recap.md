@@ -1,6 +1,6 @@
 # Reinforcement Learning Recap
 
-## Problem setting
+## Problem Setting
 
 ![RL General Idea](gfx/RL_principle.png){ width=35% }
 
@@ -185,14 +185,14 @@ To follow everything to come, it is necessary to have a general grasp of the fol
 
 ## Some Helpful Definitions
 
-- ***Fully observable***: the environment state equals the agent state; $S_t^a=S_t^e$; the agent knows the complete dynamics of the environment
-- ***Partially observable***: the agent must make an assumption about the environment because it doesn't know it's dynamics
+- $\underline{\textbf{Fully observable}}$: the environment state equals the agent state; $S_t^a=S_t^e$; the agent knows the complete dynamics of the environment
+- $\underline{\textbf{Partially observable}}$: the agent must make an assumption about the environment because it doesn't know it's dynamics
 - **Model**: the agent's internal representation of the environment
 - **Policy**: $\pi$; what the agent uses to map states to actions; tells the agent what to do
-- ***Deterministic policy***: a state will always lead to a certain action; $\pi(s)=a$
-- ***Stochastic policy***: a state will yield a probability of actions to choose from; $\pi(a|s)=\mathbb{P}(A=a|S=s)$
-- ***State-Value Function***: tells the value of a state based on the expected future reward
-- ***Action-Value Function***: tells the value of an action based on expected future reward
+- $\underline{\textbf{Deterministic policy}}$: a state will always lead to a certain action; $\pi(s)=a$
+- $\underline{\textbf{Stochastic policy}}$: a state will yield a probability of actions to choose from; $\pi(a|s)=\mathbb{P}(A=a|S=s)$
+- $\underline{\textbf{State-Value Function}}$: tells the value of a state based on the expected future reward
+- $\underline{\textbf{Action-Value Function}}$: tells the value of an action based on expected future reward
 
 
 
