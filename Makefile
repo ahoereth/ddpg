@@ -5,11 +5,11 @@ SIZE?=64
 	cd slides && \
 	pandoc \
 		-t beamer \
-		--latex-engine=pdflatex \
-		--bibliography=library.bib \
-		--csl=apa.csl \
+		--latex-engine pdflatex \
+		--bibliography library.bib \
+		--filter pandoc-citeproc \
 		--highlight-style tango \
-		--slide-level=2 \
+		--slide-level 2 \
 		-o slides.pdf \
 		slides.yaml *.md
 
