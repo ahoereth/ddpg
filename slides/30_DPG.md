@@ -5,14 +5,14 @@
 
 Problem:
 
--  The action value is in $\mathbb{R}$
+- The action value is in $\mathbb{R}$
 - At every step this requires to evaluate the action-value function $Q$ globally over (at least a subset of) $\mathbb{R}$  
 - This is infeasible
 
 Solution: 
 
 - Do not maximize over $Q$
-- but move policy in direction of $Q$
+- But move policy in direction of $Q$
 - The policy is now deterministic, giving a real valued number
 
 ## Policies in Continuous Action Space
