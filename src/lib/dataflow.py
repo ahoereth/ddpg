@@ -1,11 +1,16 @@
+from threading import Thread
+
 import tensorflow as tf
 
 from .utils import to_tuple
 
 
 class Dataflow:
-    def __init__(self, observation_shape, observation_dtype=np.float,
-                 action_shape=1, action_dtype=np.float, batchsize=32):
+    def __init__(self, memory,
+                 observation_shape, observation_dtype=tf.float,
+                 action_shape=1, action_dtype=tf.float,
+                 batchsize=32, workers=1):
+        self.memory = memory
         self.batchsize = batchsize
 
         self.queue = tf.FIFOQueue(
@@ -41,12 +46,15 @@ class Dataflow:
             self.states, self.actions, self.rewards, self.terminals,
         ])
 
-    # def worker(self):
-    #     """Feed the training queue with data."""
-    #     while True:  # Feed forever. Enqueue will block when queue is full.
-    #         batch = self.memory.sample(self.batchsize)
-    #         states, actions, rewards, states_, terminals = zip(*batch)
-    #         self.session.run(self.enqueue_op, {
-    #             self.states: states, self.actions: actions,
-    #             self.rewards: rewards, self.terminals: terminals,
-    #         })
+        for _ in range(workers):
+            Thread(target=self.worker, daemon=True).start()
+
+    def worker(self):
+        """Feed the queue with data."""
+        while True:  # Feed forever. Enqueue will block when queue is full.
+            batch = self.memory.sample(self.batchsize)
+            states, actions, rewards, states_, terminals = zip(*batch)
+            self.session.run(self.enqueue_op, {
+                self.states: states, self.actions: actions,
+                self.rewards: rewards, self.terminals: terminals,
+            })

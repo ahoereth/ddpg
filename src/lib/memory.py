@@ -51,7 +51,7 @@ class Memory:
                                 for i in range(self._state_stacksize, -1, -1)],
                                axis=-1)
         for state, terms in zip(states, term_stacks):
-            # Remove everything before of a terminal obs if before the current.
+            # Remove everything before a terminal obs if before the current.
             term = np.nonzero(terms[:-2] is True).max()
             state[..., :term + 1] = np.zeros_like(state[0])
             # Remove the next obs if the current is a terminal obs.
@@ -60,6 +60,7 @@ class Memory:
         return states
 
     def add(self, state, action, reward, terminal):
+        """Add experience to memory buffer."""
         self._head = (self._head + 1) % self._capacity
         self._observations[self._head] = state
         self._actions[self._head] = action
@@ -70,19 +71,21 @@ class Memory:
         return self._head
 
     def now(self, observation):
+        """Combine the last couple of observations with the new observation."""
         state = self._get_states(self._head)[..., 1:]
         state[..., -1] = observation
         return state
 
     def sample(self, batchsize=32):
+        """Sample a random batch from the memory buffer."""
         start = (self._head + self._state_stacksize) - len(self)
         indices = random.sample(range(start, self._head), batchsize)
         return self[indices % len(self)]
 
 
 class MultiMemory:
-    def __init__(self):
-        self._memories = []
+    def __init__(self, *memories):
+        self._memories = list(memories)
 
     def add(self, memory: Memory):
         self._memories.append(memory)

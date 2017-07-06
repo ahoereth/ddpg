@@ -1,3 +1,4 @@
+import random
 from datetime import datetime
 from pathlib import Path
 from queue import Queue
@@ -6,27 +7,28 @@ import tensorflow as tf
 
 
 class Trainer:
-    def __init__(self, session, train_op, memory, simulation_queue, save, *,
-                 update_frequency=1, batchsize=32):
+    def __init__(self, session, train_op, memory, simulation_queue, save, step,
+                 summaries, *, update_frequency=1, batchsize=32):
         self.session = session
         self.train_op = train_op
-        self.batchsize = batchsize
-        self.update_frequency = update_frequency
         self.simulation_queue = simulation_queue
         self.save = save
+        self.step = step
+        self.update_frequency = update_frequency
+        self.batchsize = batchsize
 
     def worker(self):
         """Train network(s)."""
         while True:  # Train forever. Train steps are limited by agent:
-            if task == 'log':
+            if random.random() < .01:  # Write logs sometimes.
                 summary, step, _ = self.session.run([self.summaries,
                                                      self.step,
                                                      self.train_op])
                 self.writer.add_summary(summary, step)
             else:
-                step, _ = self.session.run([self.step, self.train_op])
+                self.session.run(self.train_op)
             if step % 1000 == 0:  # Save model from time to time.
-                self.saver.save(self.session, self.logdir, global_step=step)
+                self.save(step)
 
             # Every update step allows `update_frequency` environment steps.
             for _ in range(self.update_frequency):
