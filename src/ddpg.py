@@ -43,6 +43,7 @@ class DDPG(Model):
             action = actor_short + tf.cond(training,
                                            lambda: cls.make_noise(actshape),
                                            lambda: tf.constant(0.))
+            action = tf.clip_by_value(action, *action_bounds)  # after noise
             actor_ = cls.make_actor(states_, actshape, action_bounds, 'target')
 
         # Create the online and target critic networks. This has a small
@@ -123,7 +124,6 @@ class DDPG(Model):
     @classmethod
     def make_actor(cls, states, dout, bounds, name='online', reuse=False):
         """Build an actor network mu, the policy function approximator."""
-        min_out, max_out = bounds
         dout = np.prod(dout)
         with tf.variable_scope(name, reuse=reuse) as scope:
             # training = tf.shape(states)[0] > 1  # Training or evaluating?
@@ -133,7 +133,9 @@ class DDPG(Model):
             net = cls.dense(net, 50, tf.nn.relu)
             y = cls.dense(net, dout, tf.nn.tanh, minmax=3e-4)
             with tf.variable_scope('scaling'):
-                scaled = (y - min_out) * (max_out - min_out)
+                olow, ohigh = bounds
+                low, high = -1, 1  # fro tanh
+                scaled = ((y - low) / (high - low)) * (ohigh - olow) + olow
             # ops = get_variables(scope, collection=tf.GraphKeys.UPDATE_OPS)
             return Network(scaled, get_variables(scope), [])
 

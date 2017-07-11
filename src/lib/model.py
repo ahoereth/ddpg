@@ -27,8 +27,10 @@ class Model:
         self.step = tf.train.get_global_step()
         self.session = tf.Session()
 
-        # Coordinate multiple simulators with a common memory buffer.
+        self.training_queue = Queue(1000)
         simulation_queue = Queue(max(2, self.update_frequency))
+
+        # Coordinate multiple simulators with a common memory buffer.
         agents = [Agent(env_name, self.get_action, simulation_queue,
                         memory_size=memory // simulation_workers,
                         min_memory_size=min_memory // simulation_workers,
@@ -42,7 +44,7 @@ class Model:
 
         # Create a single dataflow which feeds samples from the memory buffer
         # to the TensorFlow graph.
-        dataflow = Dataflow(multi_memory,
+        dataflow = Dataflow(self.session, multi_memory,
                             env.observation_shape, observation_dtype,
                             env.action_shape, action_dtype,
                             state_stacksize=state_stacksize,
@@ -54,7 +56,7 @@ class Model:
         states, actions, rewards, terminals, states_ = dataflow.out
         self.state = tf.placeholder(observation_dtype,
                                     env.observation_shape,
-                                    'action_sate')
+                                    'action_state')
         action_states = tf.expand_dims(self.state, 0)
         self.action, init_op, self.train_op = self.make_network(
             action_states, states, actions, rewards, terminals, states_,
@@ -71,15 +73,13 @@ class Model:
         else:
             self.session.run(tf.global_variables_initializer())
 
-        trainers = [Trainer(self.train_step, self.save, simulation_queue,
-                            update_frequency=update_frequency)
-                    for _ in range(train_workers)]
+        self.trainers = [Trainer(self.train_step, self.save,
+                                 self.training_queue, simulation_queue,
+                                 update_frequency=update_frequency)
+                         for _ in range(train_workers)]
 
         for agent in agents:
             agent.start()
-
-        for trainer in trainers:
-            trainer.start()
 
     @classmethod
     def make_network(cls, action_states, states, actions, rewards, terminals,
@@ -109,3 +109,13 @@ class Model:
             step, _ = self.session.run([self.step, self.train_op],
                                        {self.training: True})
         return step
+
+    def train(self, steps=1):
+        for trainer in self.trainers:
+            trainer.start()
+
+        for _ in range(steps):
+            self.training_queue.put(1)
+
+        for trainer in self.trainers:
+            trainer.join()

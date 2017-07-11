@@ -20,6 +20,7 @@ class Agent:
         self.simulation_queue = simulation_queue
         self.pretrain_steps = min_memory_size
         self.worker = Thread(target=self.simulate, daemon=True)
+        self.join = self.worker.join
 
     def simulate(self):
         """Interact with the environment forever."""

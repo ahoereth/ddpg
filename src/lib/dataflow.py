@@ -8,10 +8,11 @@ from .utils import to_tuple
 
 
 class Dataflow:
-    def __init__(self, memory,
+    def __init__(self, session, memory,
                  observation_shape, observation_dtype=tf.float32,
                  action_shape=1, action_dtype=tf.float32,
                  state_stacksize=1, min_memory=None, batchsize=32, workers=1):
+        self.session = session
         self.memory = memory
         self.batchsize = batchsize
         self.min_memory = batchsize if min_memory is None else min_memory
@@ -59,7 +60,7 @@ class Dataflow:
             while len(self.memory) < self.min_memory:
                 time.sleep(1)
             batch = self.memory.sample(self.batchsize)
-            states, actions, rewards, states_, terminals = zip(*batch)
+            states, actions, rewards, terminals = zip(*batch)
             self.session.run(self.enqueue_op, {
                 self.states: states, self.actions: actions,
                 self.rewards: rewards, self.terminals: terminals,
