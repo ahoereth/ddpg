@@ -56,7 +56,7 @@ class Model:
                                     env.observation_shape,
                                     'action_sate')
         action_states = tf.expand_dims(self.state, 0)
-        self.action, init_op, train_op = self.make_network(
+        self.action, init_op, self.train_op = self.make_network(
             action_states, states, actions, rewards, terminals, states_,
             training=self.training, step=self.step,
             action_bounds=env.action_bounds)
@@ -71,10 +71,8 @@ class Model:
         else:
             self.session.run(tf.global_variables_initializer())
 
-        trainers = [Trainer(self.session, train_op, memory, simulation_queue,
-                            self.save, self.step, self.summaries,
-                            update_frequency=update_frequency,
-                            batchsize=self.batchsize)
+        trainers = [Trainer(self.train_step, self.save, simulation_queue,
+                            update_frequency=update_frequency)
                     for _ in range(train_workers)]
 
         for agent in agents:
@@ -100,3 +98,14 @@ class Model:
         if step is None:
             step = self.session.run(self.step)
         self.saver.save(self.session, self.logdir, global_step=step)
+
+    def train_step(self, summarize=False):
+        if summarize:
+            summary, step, _ = self.session.run([self.summaries, self.step,
+                                                 self.train_op],
+                                                {self.training: True})
+            self.writer.add_summary(summary, step)
+        else:
+            step, _ = self.session.run([self.step, self.train_op],
+                                       {self.training: True})
+        return step

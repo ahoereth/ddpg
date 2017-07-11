@@ -42,7 +42,7 @@ class Memory:
 
     def _get_states(self, indices):
         """Get states, each state being a stack of observations."""
-        indices = np.asarray(indices)
+        indices = np.array(to_tuple(indices))
         states = np.stack([self._observations[(indices - i) % len(self)]
                            for i in range(self._state_stacksize, 0, -1)],
                           axis=-1)

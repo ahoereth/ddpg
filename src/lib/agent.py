@@ -46,4 +46,5 @@ class Agent:
         self.simulate()
 
     def start(self):
-        self.worker.start()
+        if not self.worker.is_alive():
+            self.worker.start()
