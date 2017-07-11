@@ -1,27 +1,32 @@
+from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
+from queue import Queue
 
 import tensorflow as tf
+import numpy as np
 from tensorflow.contrib.framework import get_variables
 
-from queue import Queue
-from datetime import datetime
+from .lib import Model, to_tuple, selu
 
 
-from collections import namedtuple
 Network = namedtuple('Network', ['y', 'vars', 'ops'])
 
 
-class DDPG:
+class DDPG(Model):
     """Deep Deterministic Policy Gradient RL Model."""
 
     batchsize = 100
 
-    def __init__(self, observation_shape, action_shape, action_bounds,
-                 memory=None, checkpoint=None):
+    def __init__(self, env_name, memory=1e6, min_memory=1e4,
+                 update_frequency=1, state_stacksize=1, checkpoint=None,
+                 simulation_workers=2, train_workers=2, feed_workers=1):
         """Create a new DDPG model."""
-        super(DDPG, self).__init__(memory=memory, checkpoint=checkpoint,
-                                   action_bounds=action_bounds)
+        super(DDPG, self).__init__(
+            env_name=env_name, memory=memory, min_memory=min_memory,
+            update_frequency=update_frequency, state_stacksize=state_stacksize,
+            simulation_workers=simulation_workers, train_workers=train_workers,
+            feed_workers=feed_workers, checkpoint=checkpoint)
 
     @classmethod
     def make_network(cls, act_states, states, actions, rewards, terminals,
@@ -32,12 +37,12 @@ class DDPG:
         # inputs and, together with the noise, provides the current action
         with tf.variable_scope('actor'):
             actshape = actions.shape.as_list()[1:]
-            noise = cls.make_noise(actshape)
             actor = cls.make_actor(states, actshape, action_bounds)
-            actor_short = cls.make_actor(act_states, actshape, action_bounds,
-                                         reuse=True)
-            # TODO(ahoereth): action_bounds
-            action = actor_short + tf.cond(training, noise, 0)
+            actor_short, _, _ = cls.make_actor(act_states, actshape,
+                                               action_bounds, reuse=True)
+            action = actor_short + tf.cond(training,
+                                           lambda: cls.make_noise(actshape),
+                                           lambda: tf.constant(0.))
             actor_ = cls.make_actor(states_, actshape, action_bounds, 'target')
 
         # Create the online and target critic networks. This has a small
@@ -87,17 +92,18 @@ class DDPG:
             kernel_regularizer=decay and tf.contrib.layers.l2_regularizer(1e-3)
         )
 
-    @staticmethod
-    def make_critic(states, actions, name='online', reuse=False):
+    @classmethod
+    def make_critic(cls, states, actions, name='online', reuse=False):
         """Build a critic network q, the value function approximator."""
         with tf.variable_scope(name, reuse=reuse) as scope:
             # training = tf.shape(states)[0] > 1  # Training or evaluating?
             # states = tf.layers.batch_normalization(states, training=training)
-            net = dense(states, 100, selu, decay=True)  # Feature extraction
+            # Feature extraction
+            net = cls.dense(states, 100, selu, decay=True)
             # net = tf.layers.batch_normalization(net, training=training)
             net = tf.concat([net, actions], axis=1)  # Actions enter the net
-            net = dense(net, 50, selu, decay=True)  # Value estimation
-            y = dense(net, 1, decay=True, minmax=3e-4)
+            net = cls.dense(net, 50, selu, decay=True)  # Value estimation
+            y = cls.dense(net, 1, decay=True, minmax=3e-4)
             # ops = get_variables(scope, collection=tf.GraphKeys.UPDATE_OPS)
             return Network(tf.squeeze(y), get_variables(scope), [])
 
@@ -118,6 +124,7 @@ class DDPG:
     def make_actor(cls, states, dout, bounds, name='online', reuse=False):
         """Build an actor network mu, the policy function approximator."""
         min_out, max_out = bounds
+        dout = np.prod(dout)
         with tf.variable_scope(name, reuse=reuse) as scope:
             # training = tf.shape(states)[0] > 1  # Training or evaluating?
             # states = tf.layers.batch_normalization(states, training=training)
@@ -163,12 +170,8 @@ class DDPG:
     def make_noise(n, theta=.15, sigma=.4):
         """Ornstein-Uhlenbeck noise process."""
         with tf.variable_scope('OUNoise'):
-            state = tf.Variable(tf.zeros((n,)))
-            noise = -theta * state + sigma * tf.random_normal((n,))
+            shape = to_tuple(n)
+            state = tf.Variable(tf.zeros(shape))
+            noise = -theta * state + sigma * tf.random_normal(shape)
             # reset = state.assign(tf.zeros((n,)))
             return state.assign_add(noise)
-
-    def reset_noise(self):
-        """Reset noise process."""
-        pass
-        # self.session.run(self.noise_reset)

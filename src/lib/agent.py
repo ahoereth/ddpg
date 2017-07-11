@@ -20,7 +20,6 @@ class Agent:
         self.simulation_queue = simulation_queue
         self.pretrain_steps = min_memory_size
         self.worker = Thread(target=self.simulate, daemon=True)
-        self.worker.start()
 
     def simulate(self):
         """Interact with the environment forever."""
@@ -45,3 +44,6 @@ class Agent:
 
         # Repeat forever.
         self.simulate()
+
+    def start(self):
+        self.worker.start()

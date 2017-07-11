@@ -12,13 +12,14 @@ class Memory:
                  state_stacksize=1, capacity=1e6):
         self._state_stacksize = state_stacksize
         self._capacity = int(capacity) + self._state_stacksize
-        state_store_shape = to_tuple(self._capacity, observation_shape)
+        self._observation_shape = observation_shape
+        state_store_shape = to_tuple(self._capacity, self._observation_shape)
         self._observations = np.zeros(state_store_shape,
                                       dtype=observation_dtype).squeeze()
         self._actions = np.zeros(to_tuple(self._capacity, action_shape),
                                  dtype=action_dtype).squeeze()
-        self._rewards = np.zeros(capacity, dtype=np.float)
-        self._terminals = np.zeros(capacity, dtype=np.bool)
+        self._rewards = np.zeros(self._capacity, dtype=np.float)
+        self._terminals = np.zeros(self._capacity, dtype=np.bool)
         self._head = -1
         self._size = 0
 
@@ -41,14 +42,13 @@ class Memory:
 
     def _get_states(self, indices):
         """Get states, each state being a stack of observations."""
-        if not isinstance(indices, (list, tuple)):
-            indices = (indices,)
+        indices = np.asarray(indices)
         states = np.stack([self._observations[(indices - i) % len(self)]
-                           for i in range(self._state_stacksize, -1, -1)],
+                           for i in range(self._state_stacksize, 0, -1)],
                           axis=-1)
         states = np.swapaxes(states, 0, 1)
         term_stacks = np.stack([self._terminals[indices - i % len(self)]
-                                for i in range(self._state_stacksize, -1, -1)],
+                                for i in range(self._state_stacksize, 0, -1)],
                                axis=-1)
         for state, terms in zip(states, term_stacks):
             # Remove everything before a terminal obs if before the current.
@@ -72,7 +72,15 @@ class Memory:
 
     def now(self, observation):
         """Combine the last couple of observations with the new observation."""
-        state = self._get_states(self._head)[..., 1:]
+        try:
+            state = self._get_states(self._head)[..., 1:]
+        except ZeroDivisionError as e:
+            if not len(self):
+                shape = to_tuple(self._observation_shape,
+                                 self._state_stacksize)
+                state = np.zeros(shape, dtype=self._observations.dtype)
+            else:
+                raise e
         state[..., -1] = observation
         return state
 
@@ -87,6 +95,9 @@ class MultiMemory:
     def __init__(self, *memories):
         self._memories = list(memories)
 
+    def __len__(self):
+        return sum([len(memory) for memory in self._memories])
+
     def add(self, memory: Memory):
         self._memories.append(memory)
 
@@ -95,6 +106,6 @@ class MultiMemory:
         batch = []
         memory_select = np.random.randint(0, len(self._memories), batchsize)
         _, counts = np.unique(memory_select, return_counts=True)
-        for memory, n in zip(self._memories, n):
+        for memory, n in zip(self._memories, counts):
             batch.extend(memory.sample(n))
         return batch

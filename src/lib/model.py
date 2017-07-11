@@ -8,18 +8,16 @@ from .agent import Agent
 from .dataflow import Dataflow
 from .memory import MultiMemory
 from .trainer import Trainer
+from .utils import to_tf_dtype
 
 
 class Model:
 
     batchsize = 32
 
-    def __init__(self, env_name, observation_shape, observation_dtype,
-                 action_shape, action_dtype, update_frequency=1,
-                 memory=1e6, min_memory=1e4,
-                 state_stacksize=1, checkpoint=None,
-                 simulation_workers=2, train_workers=2, feed_workers=1,
-                 **kwargs):
+    def __init__(self, env_name, memory=1e6, min_memory=1e4,
+                 update_frequency=1, state_stacksize=1, checkpoint=None,
+                 simulation_workers=2, train_workers=2, feed_workers=1):
         self.update_frequency = update_frequency
 
         time = datetime.now().strftime('%y%m%d-%H%M')
@@ -36,30 +34,37 @@ class Model:
                         min_memory_size=min_memory // simulation_workers,
                         state_stacksize=state_stacksize)
                   for _ in range(simulation_workers)]
-        multi_memory = MultiMemory([agent.memory for agent in agents])
+        multi_memory = MultiMemory(*[agent.memory for agent in agents])
+
+        env = agents[0].env
+        observation_dtype = to_tf_dtype(env.observation_dtype)
+        action_dtype = to_tf_dtype(env.action_dtype)
 
         # Create a single dataflow which feeds samples from the memory buffer
         # to the TensorFlow graph.
-        env = agents[0].env
         dataflow = Dataflow(multi_memory,
-                            env.observation_shape, env.observation_dtype,
-                            env.action_shape, env.action_dtype,
+                            env.observation_shape, observation_dtype,
+                            env.action_shape, action_dtype,
+                            state_stacksize=state_stacksize,
+                            min_memory=min_memory,
                             batchsize=self.batchsize, workers=feed_workers)
 
         # TODO(ahoereth): Explain what is going on here
         self.training = tf.placeholder_with_default(True, None, 'training')
         states, actions, rewards, terminals, states_ = dataflow.out
-        self.state = tf.placeholder(observation_dtype, observation_shape,
+        self.state = tf.placeholder(observation_dtype,
+                                    env.observation_shape,
                                     'action_sate')
         action_states = tf.expand_dims(self.state, 0)
         self.action, init_op, train_op = self.make_network(
             action_states, states, actions, rewards, terminals, states_,
-            training=self.training, step=self.step, **kwargs)
+            training=self.training, step=self.step,
+            action_bounds=env.action_bounds)
 
         # Collect summaries, load checkpoint and/or initialize variables.
         self.summaries = tf.summary.merge_all()
-        self.writer = tf.summary.FileWriter(
-            self.logdir, self.session.graph)
+        self.writer = tf.summary.FileWriter(str(self.logdir),
+                                            self.session.graph)
         self.saver = tf.train.Saver(max_to_keep=1)
         if checkpoint:
             self.saver.restore(self.session, checkpoint)
