@@ -23,22 +23,21 @@ class Model:
         time = datetime.now().strftime('%y%m%d-%H%M')
         self.logdir = Path('logs') / type(self).__name__ / time
 
-        tf.train.create_global_step()
-        self.step = tf.train.get_global_step()
+        self.step = tf.train.create_global_step()
         self.session = tf.Session()
 
         self.training_queue = Queue(1000)
         simulation_queue = Queue(max(2, self.update_frequency))
 
         # Coordinate multiple simulators with a common memory buffer.
-        agents = [Agent(env_name, self.get_action, simulation_queue,
-                        memory_size=memory // simulation_workers,
-                        min_memory_size=min_memory // simulation_workers,
-                        state_stacksize=state_stacksize)
-                  for _ in range(simulation_workers)]
-        multi_memory = MultiMemory(*[agent.memory for agent in agents])
+        self.agents = [Agent(env_name, self.get_action, simulation_queue,
+                             memory_size=memory // simulation_workers,
+                             min_memory_size=min_memory // simulation_workers,
+                             state_stacksize=state_stacksize)
+                       for _ in range(simulation_workers)]
+        multi_memory = MultiMemory(*[agent.memory for agent in self.agents])
 
-        env = agents[0].env
+        env = self.agents[0].env
         observation_dtype = to_tf_dtype(env.observation_dtype)
         action_dtype = to_tf_dtype(env.action_dtype)
 
@@ -78,7 +77,7 @@ class Model:
                                  update_frequency=update_frequency)
                          for _ in range(train_workers)]
 
-        for agent in agents:
+        for agent in self.agents:
             agent.start()
 
     @classmethod
