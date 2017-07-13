@@ -27,7 +27,7 @@ class Model:
         self.session = tf.Session()
 
         self.training_queue = Queue(1000)
-        simulation_queue = Queue(max(2, self.update_frequency))
+        simulation_queue = Queue(max(5, self.update_frequency))
 
         # Coordinate multiple simulators with a common memory buffer.
         self.agents = [Agent(env_name, self.get_action, simulation_queue,
@@ -66,7 +66,9 @@ class Model:
         self.summaries = tf.summary.merge_all()
         self.writer = tf.summary.FileWriter(str(self.logdir),
                                             self.session.graph)
-        self.saver = tf.train.Saver(max_to_keep=1)
+        self.saver = tf.train.Saver(  # tf.trainable_variables(),
+            max_to_keep=1,
+            keep_checkpoint_every_n_hours=1)
         if checkpoint:
             self.saver.restore(self.session, checkpoint)
         else:
@@ -76,9 +78,6 @@ class Model:
                                  self.training_queue, simulation_queue,
                                  update_frequency=update_frequency)
                          for _ in range(train_workers)]
-
-        for agent in self.agents:
-            agent.start()
 
     @classmethod
     def make_network(cls, action_states, states, actions, rewards, terminals,
@@ -96,7 +95,7 @@ class Model:
         """Save current model state."""
         if step is None:
             step = self.session.run(self.step)
-        self.saver.save(self.session, self.logdir, global_step=step)
+        self.saver.save(self.session, str(self.logdir), global_step=step)
 
     def train_step(self, summarize=False):
         if summarize:
@@ -110,8 +109,13 @@ class Model:
         return step
 
     def train(self, steps=1):
+        for agent in self.agents:
+            if not agent.is_alive():
+                agent.start()
+
         for trainer in self.trainers:
-            trainer.start()
+            if not trainer.is_alive():
+                trainer.start()
 
         for _ in range(steps):
             self.training_queue.put(1)

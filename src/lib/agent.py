@@ -6,10 +6,11 @@ from .environment import Environment
 from .memory import Memory
 
 
-class Agent:
+class Agent(Thread):
     def __init__(self, env_name, get_action, simulation_queue, *,
                  training=True, memory_size=1e6, min_memory_size=1e4,
                  state_stacksize=1):
+        super(Agent, self).__init__(target=self.simulate, daemon=True)
         self.env_name = env_name
         self.env = Environment(self.env_name)
         self.get_action = partial(get_action, training=training)
@@ -21,9 +22,7 @@ class Agent:
                              action_dtype=self.env.action_dtype)
         self.simulation_queue = simulation_queue
         self.pretrain_steps = min_memory_size
-        self.worker = Thread(target=self.simulate, daemon=True)
         self.observation = None
-        self.join = self.worker.join
         self.episodes = 0
         self.steps = 0
 
@@ -33,7 +32,7 @@ class Agent:
             self.observation = self.env.reset()
             while not self.env.terminated:
                 # Wait until this agent is allowed to move on.
-                if not demo and self.pretrain_steps <= 0:
+                if not demo and self.pretrain_steps < 0:
                     self.simulation_queue.get()
                 else:
                     self.pretrain_steps -= 1
@@ -55,10 +54,6 @@ class Agent:
             # Stop simulation after one episode when demoing.
             if demo:
                 break
-
-    def start(self):
-        if not self.worker.is_alive():
-            self.worker.start()
 
     def restart(self):
         self.env.close()
