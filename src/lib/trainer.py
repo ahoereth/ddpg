@@ -31,7 +31,7 @@ class Trainer:
             else:
                 step = self.train()
             if step % 1000 == 0:  # Save model from time to time.
-                self.save()
+                self.save(step)
 
             # Every update step allows `update_frequency` environment steps.
             for _ in range(self.update_frequency):

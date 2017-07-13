@@ -92,7 +92,7 @@ class Model:
                                                  self.training: training})
         return action
 
-    def save(self, step):
+    def save(self, step=None):
         """Save current model state."""
         if step is None:
             step = self.session.run(self.step)
@@ -118,3 +118,24 @@ class Model:
 
         for trainer in self.trainers:
             trainer.join()
+
+    def demo(self):
+        """Demo a single episode."""
+        agent = self.agents[0]
+        agent.restart()
+        agent.simulate(demo=True)  # Not threaded!
+
+    @property
+    def env_steps(self):
+        """Environment steps taken."""
+        return sum([agent.steps for agent in self.agents])
+
+    @property
+    def episodes(self):
+        """Environment episodes simulated."""
+        return sum([agent.episodes for agent in self.agents])
+
+    @property
+    def steps(self):
+        """Training/SGD steps."""
+        return self.session.run(self.steps)

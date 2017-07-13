@@ -8,6 +8,8 @@ from .utils import to_tuple
 class Environment:
     def __init__(self, env_name):
         self.gym = gym.make(env_name)
+        self.render = self.gym.render
+        self.close = self.gym.close
 
         # Determine the environments observation properties.
         observation_space = self.gym.observation_space
@@ -39,15 +41,16 @@ class Environment:
 
     def reset(self):
         if self.terminated is True:
+            self.terminated = False
             self.episode_reward = 0
             self.observation = self.preprocess(self.gym.reset())
         return self.observation
 
     def step(self, action):
-        observation, reward, terminal, info = self.gym.step(action)
+        observation, reward, self.terminated, info = self.gym.step(action)
         self.observation = self.preprocess(observation)
         self.episode_reward += reward
-        return self.observation, reward, terminal
+        return self.observation, reward, self.terminated
 
     def preprocess(self, observation):
         # Extract luminance from RGB images.
