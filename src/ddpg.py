@@ -45,6 +45,7 @@ class DDPG(Model):
                                            lambda: tf.constant(0.))
             action = tf.clip_by_value(action, *action_bounds)  # after noise
             actor_ = cls.make_actor(states_, actshape, action_bounds, 'target')
+        tf.contrib.layers.summarize_tensors(actor.vars)
 
         # Create the online and target critic networks. This has a small
         # speciality: The online critic is created twice, once using the
@@ -59,24 +60,21 @@ class DDPG(Model):
             critic = cls.make_critic(states, actions)
             critic_short = cls.make_critic(states, actor.y, reuse=True)
             critic_ = cls.make_critic(states_, actor_.y, 'target')
-            tf.summary.scalar('training/q/max', tf.reduce_max(critic.y))
-            tf.summary.scalar('training/q/mean', tf.reduce_mean(critic.y))
+        tf.contrib.layers.summarize_tensors(critic.vars)
 
-        # Training operations bundled into a single list because we will
-        # always call them together.
-        with tf.variable_scope('training'):
-            train_op = [
-                cls.make_critic_trainer(critic, critic_, terminals, rewards),
-                cls.make_actor_trainer(actor, critic_short, step),
-                cls.make_soft_updates(critic, critic_),
-                cls.make_soft_updates(actor, actor_)
-            ]
+        # Create training and soft update operations.
+        train_ops = [
+            cls.make_critic_trainer(critic, critic_, terminals, rewards),
+            cls.make_actor_trainer(actor, critic_short, step),
+            cls.make_soft_updates(critic, critic_),
+            cls.make_soft_updates(actor, actor_),
+        ]
 
         # Sync the two network pairs initially.
-        init_op = [cls.make_hard_updates(critic, critic_) +
-                   cls.make_hard_updates(actor, actor_)]
+        init_ops = [cls.make_hard_updates(critic, critic_) +
+                    cls.make_hard_updates(actor, actor_)]
 
-        return action, init_op, train_op
+        return action, init_ops, train_ops
 
     @staticmethod
     def dense(x, units, activation=tf.identity, decay=None, minmax=None):
@@ -89,7 +87,7 @@ class DDPG(Model):
             units,
             activation=activation,
             kernel_initializer=tf.random_uniform_initializer(-minmax, minmax),
-            # bias_initializer=tf.random_uniform_initializer(-minmax, minmax),
+            bias_initializer=tf.random_uniform_initializer(-minmax, minmax),
             kernel_regularizer=decay and tf.contrib.layers.l2_regularizer(1e-3)
         )
 
@@ -100,20 +98,25 @@ class DDPG(Model):
             # training = tf.shape(states)[0] > 1  # Training or evaluating?
             # states = tf.layers.batch_normalization(states, training=training)
             # Feature extraction
-            net = cls.dense(states, 100, selu, decay=True)
+            net = cls.dense(states, 100, tf.nn.relu, decay=True)
             # net = tf.layers.batch_normalization(net, training=training)
             net = tf.concat([net, actions], axis=1)  # Actions enter the net
-            net = cls.dense(net, 50, selu, decay=True)  # Value estimation
-            y = cls.dense(net, 1, decay=True, minmax=3e-4)
+            # Value estimation
+            net = cls.dense(net, 50, tf.nn.relu, decay=True)
+            y = cls.dense(net, 1, decay=True, minmax=3e-3)
             # ops = get_variables(scope, collection=tf.GraphKeys.UPDATE_OPS)
             return Network(tf.squeeze(y), get_variables(scope), [])
 
     @staticmethod
     def make_critic_trainer(critic, critic_, terminals, rewards, gamma=.99):
-        """Build critic network optimizer minimizing MSE."""
-        with tf.variable_scope('critic'):
-            # Terminal states limit the horizon -- only look at future rewards
-            # if the agent did not reach a terminal state.
+        """Build critic network optimizer minimizing MSE.
+
+        Terminal states are used as final horizon, meaning future rewards are
+        only considered if the agent did not reach a terminal state.
+        """
+        with tf.variable_scope('training/critic'):
+            tf.summary.scalar('q/max', tf.reduce_max(critic.y))
+            tf.summary.scalar('q/mean', tf.reduce_mean(critic.y))
             targets = tf.where(terminals, rewards, rewards + gamma * critic_.y)
             mse = tf.reduce_mean(tf.squared_difference(targets, critic.y))
             tf.summary.scalar('loss', mse)
@@ -131,7 +134,7 @@ class DDPG(Model):
             net = cls.dense(states, 100, tf.nn.relu)
             # net = tf.layers.batch_normalization(net, training=training)
             net = cls.dense(net, 50, tf.nn.relu)
-            y = cls.dense(net, dout, tf.nn.tanh, minmax=3e-4)
+            y = cls.dense(net, dout, tf.nn.tanh, minmax=3e-3)
             with tf.variable_scope('scaling'):
                 olow, ohigh = bounds
                 low, high = -1, 1  # fro tanh
@@ -142,7 +145,7 @@ class DDPG(Model):
     @staticmethod
     def make_actor_trainer(actor, critic, step):
         """Build actor network optimizier performing action gradient ascent."""
-        with tf.variable_scope('actor'):
+        with tf.variable_scope('training/actor'):
             # What is `actor.y`'s influence on the critic network's output?
             act_grad, = tf.gradients(critic.y, actor.y)  # (batchsize, dout)
             act_grad = tf.stop_gradient(act_grad)
@@ -169,7 +172,7 @@ class DDPG(Model):
                     for online, target in zip(src.vars, dst.vars)]
 
     @staticmethod
-    def make_noise(n, theta=.15, sigma=.4):
+    def make_noise(n, theta=.2, sigma=.4):
         """Ornstein-Uhlenbeck noise process."""
         with tf.variable_scope('OUNoise'):
             shape = to_tuple(n)

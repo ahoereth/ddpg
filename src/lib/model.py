@@ -11,6 +11,12 @@ from .trainer import Trainer
 from .utils import to_tf_dtype
 
 
+def summarize(name, value):
+    return tf.Summary(value=[
+        tf.Summary.Value(tag=name, simple_value=value)
+    ])
+
+
 class Model:
 
     batchsize = 32
@@ -51,7 +57,7 @@ class Model:
                             batchsize=self.batchsize, workers=feed_workers)
 
         # TODO(ahoereth): Explain what is going on here
-        self.training = tf.placeholder_with_default(True, None, 'training')
+        self.training = tf.placeholder_with_default(True, None, 'is_training')
         states, actions, rewards, terminals, states_ = dataflow.out
         self.state = tf.placeholder(observation_dtype,
                                     env.observation_shape,
@@ -66,9 +72,9 @@ class Model:
         self.summaries = tf.summary.merge_all()
         self.writer = tf.summary.FileWriter(str(self.logdir),
                                             self.session.graph)
-        self.saver = tf.train.Saver(  # tf.trainable_variables(),
-            max_to_keep=1,
-            keep_checkpoint_every_n_hours=1)
+        self.saver = tf.train.Saver(tf.trainable_variables(),
+                                    max_to_keep=1,
+                                    keep_checkpoint_every_n_hours=1)
         if checkpoint:
             self.saver.restore(self.session, checkpoint)
         else:
@@ -97,12 +103,16 @@ class Model:
             step = self.session.run(self.step)
         self.saver.save(self.session, str(self.logdir), global_step=step)
 
-    def train_step(self, summarize=False):
+    def train_step(self, create_summary=False):
         if summarize:
             summary, step, _ = self.session.run([self.summaries, self.step,
                                                  self.train_op],
                                                 {self.training: True})
             self.writer.add_summary(summary, step)
+            self.writer.add_summary(summarize('misc/episodes', self.episodes),
+                                    step)
+            self.writer.add_summary(summarize('misc/envsteps', self.env_steps),
+                                    step)
         else:
             step, _ = self.session.run([self.step, self.train_op],
                                        {self.training: True})

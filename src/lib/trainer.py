@@ -25,7 +25,7 @@ class Trainer(Thread):
             except Empty:
                 break
             if random.random() < .01:  # Write logs sometimes.
-                step = self.train(summarize=True)
+                step = self.train(create_summary=True)
                 print('{} steps done.'.format(step))
             else:
                 step = self.train()
