@@ -1,3 +1,4 @@
+from collections import deque
 from functools import partial
 from itertools import count
 from threading import Thread
@@ -23,6 +24,7 @@ class Agent(Thread):
         self.simulation_queue = simulation_queue
         self.pretrain_steps = min_memory_size
         self.observation = None
+        self.rewards = deque([], 10)
         self.episodes = 0
         self.steps = 0
 
@@ -51,6 +53,7 @@ class Agent(Thread):
                 if demo:
                     self.env.render(close=terminal)
 
+            self.rewards.append(self.env.episode_reward)
             # Stop simulation after one episode when demoing.
             if demo:
                 break

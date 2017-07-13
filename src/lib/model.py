@@ -3,6 +3,7 @@ from pathlib import Path
 from queue import Queue
 
 import tensorflow as tf
+import numpy as np
 
 from .agent import Agent
 from .dataflow import Dataflow
@@ -109,9 +110,14 @@ class Model:
                                                  self.train_op],
                                                 {self.training: True})
             self.writer.add_summary(summary, step)
+            reward = self.rewards
             self.writer.add_summary(summarize('misc/episodes', self.episodes),
                                     step)
             self.writer.add_summary(summarize('misc/envsteps', self.env_steps),
+                                    step)
+            self.writer.add_summary(summarize('training/r/avg', reward.mean()),
+                                    step)
+            self.writer.add_summary(summarize('training/r/max', reward.max()),
                                     step)
         else:
             step, _ = self.session.run([self.step, self.train_op],
@@ -153,3 +159,10 @@ class Model:
     def steps(self):
         """Training/SGD steps."""
         return self.session.run(self.steps)
+
+    @property
+    def rewards(self):
+        rewards = []
+        for agent in self.agents:
+            rewards.extend(agent.rewards)
+        return np.array(rewards)
