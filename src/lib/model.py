@@ -74,8 +74,7 @@ class Model:
         self.summaries = tf.summary.merge_all()
         self.writer = tf.summary.FileWriter(str(self.logdir),
                                             self.session.graph)
-        self.saver = tf.train.Saver(tf.trainable_variables(),
-                                    max_to_keep=1,
+        self.saver = tf.train.Saver(max_to_keep=1,
                                     keep_checkpoint_every_n_hours=1)
         if checkpoint:
             self.saver.restore(self.session, checkpoint)
