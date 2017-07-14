@@ -10,7 +10,7 @@ from tensorflow.contrib.framework import get_variables
 from .lib import Model, to_tuple, selu
 
 
-Network = namedtuple('Network', ['y', 'vars', 'ops'])
+Network = namedtuple('Network', ['y', 'vars', 'ops', 'losses'])
 
 
 class DDPG(Model):
@@ -38,13 +38,14 @@ class DDPG(Model):
         with tf.variable_scope('actor'):
             actshape = actions.shape.as_list()[1:]
             actor = cls.make_actor(states, actshape, action_bounds)
-            actor_short, _, _ = cls.make_actor(act_states, actshape,
-                                               action_bounds, reuse=True)
-            action = actor_short + tf.cond(training,
-                                           lambda: cls.make_noise(actshape),
-                                           lambda: tf.constant(0.))
+            actor_short = cls.make_actor(act_states, actshape, action_bounds,
+                                         reuse=True)
+            action = actor_short.y + tf.cond(training,
+                                             lambda: cls.make_noise(actshape),
+                                             lambda: tf.constant(0.))
             action = tf.clip_by_value(action, *action_bounds)  # after noise
-            actor_ = cls.make_actor(states_, actshape, action_bounds, 'target')
+            actor_ = cls.make_actor(states_, actshape, action_bounds,
+                                    name='target')
         tf.contrib.layers.summarize_tensors(actor.vars)
 
         # Create the online and target critic networks. This has a small
@@ -77,35 +78,40 @@ class DDPG(Model):
         return action, init_ops, train_ops
 
     @staticmethod
-    def dense(x, units, activation=tf.identity, decay=None, minmax=None):
+    def dense(name, x, units, activation=None, decay=None, minmax=None):
         """Build a dense layer with uniform init and optional weight decay."""
         if minmax is None:
-            minmax = float(x.shape[1].value) ** -.5
+            minmax = 1 / np.sqrt(float(x.shape[1].value))
+        initializer = tf.random_uniform_initializer(-minmax, minmax)
+
+        regularizer = None
+        if decay is not None:
+            regularizer = tf.contrib.layers.l2_regularizer(1e-2)
 
         return tf.layers.dense(
-            x,
-            units,
+            x, units,
+            name=name,
             activation=activation,
-            kernel_initializer=tf.random_uniform_initializer(-minmax, minmax),
-            bias_initializer=tf.random_uniform_initializer(-minmax, minmax),
-            kernel_regularizer=decay and tf.contrib.layers.l2_regularizer(1e-3)
+            kernel_initializer=initializer,
+            bias_initializer=initializer,
+            kernel_regularizer=regularizer,
+            bias_regularizer=regularizer,
         )
 
     @classmethod
     def make_critic(cls, states, actions, name='online', reuse=False):
         """Build a critic network q, the value function approximator."""
+        is_batch = tf.shape(states)[0] > 1
         with tf.variable_scope(name, reuse=reuse) as scope:
-            # training = tf.shape(states)[0] > 1  # Training or evaluating?
-            # states = tf.layers.batch_normalization(states, training=training)
-            # Feature extraction
-            net = cls.dense(states, 100, tf.nn.relu, decay=True)
-            # net = tf.layers.batch_normalization(net, training=training)
+            states = tf.layers.batch_normalization(states, training=is_batch)
+            net = cls.dense('0', states, 100, tf.nn.relu, decay=True)
+            net = tf.layers.batch_normalization(net, training=is_batch)
             net = tf.concat([net, actions], axis=1)  # Actions enter the net
-            # Value estimation
-            net = cls.dense(net, 50, tf.nn.relu, decay=True)
-            y = cls.dense(net, 1, decay=True, minmax=3e-3)
-            # ops = get_variables(scope, collection=tf.GraphKeys.UPDATE_OPS)
-            return Network(tf.squeeze(y), get_variables(scope), [])
+            net = cls.dense('1', net, 50, tf.nn.relu, decay=True)
+            y = cls.dense('2_q', net, 1, decay=True, minmax=3e-3)
+            ops = scope.get_collection(tf.GraphKeys.UPDATE_OPS)
+            losses = scope.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+            return Network(tf.squeeze(y), get_variables(scope), ops, losses)
 
     @staticmethod
     def make_critic_trainer(critic, critic_, terminals, rewards, gamma=.99):
@@ -118,33 +124,35 @@ class DDPG(Model):
             tf.summary.scalar('q/max', tf.reduce_max(critic.y))
             tf.summary.scalar('q/mean', tf.reduce_mean(critic.y))
             targets = tf.where(terminals, rewards, rewards + gamma * critic_.y)
-            mse = tf.reduce_mean(tf.squared_difference(targets, critic.y))
-            tf.summary.scalar('loss', mse)
+            loss = tf.losses.mean_squared_error(targets, critic.y)
+            tf.summary.scalar('loss', loss)
+            if len(critic.losses):
+                loss += tf.add_n(critic.losses)
             optimizer = tf.train.AdamOptimizer(1e-3)
             with tf.control_dependencies(critic.ops):
-                return optimizer.minimize(mse, tf.train.get_global_step())
+                return optimizer.minimize(loss, tf.train.get_global_step())
 
     @classmethod
     def make_actor(cls, states, dout, bounds, name='online', reuse=False):
         """Build an actor network mu, the policy function approximator."""
+        is_batch = tf.shape(states)[0] > 1
         dout = np.prod(dout)
         with tf.variable_scope(name, reuse=reuse) as scope:
-            # training = tf.shape(states)[0] > 1  # Training or evaluating?
-            # states = tf.layers.batch_normalization(states, training=training)
-            net = cls.dense(states, 100, tf.nn.relu)
-            # net = tf.layers.batch_normalization(net, training=training)
-            net = cls.dense(net, 50, tf.nn.relu)
-            y = cls.dense(net, dout, tf.nn.tanh, minmax=3e-3)
-            with tf.variable_scope('scaling'):
-                olow, ohigh = bounds
-                low, high = -1, 1  # fro tanh
-                scaled = ((y - low) / (high - low)) * (ohigh - olow) + olow
-            # ops = get_variables(scope, collection=tf.GraphKeys.UPDATE_OPS)
-            return Network(scaled, get_variables(scope), [])
+            training = tf.shape(states)[0] > 1
+            states = tf.layers.batch_normalization(states, training=is_batch)
+            net = cls.dense('0', states, 100, tf.nn.relu)
+            net = tf.layers.batch_normalization(net, training=is_batch)
+            net = cls.dense('1', net, 50, tf.nn.relu)
+            net = tf.layers.batch_normalization(net, training=is_batch)
+            y = cls.dense('2', net, dout, tf.nn.tanh, minmax=3e-3)
+            scaled = cls.scale(y, bounds_in=(-1, 1), bounds_out=bounds)
+            ops = scope.get_collection(tf.GraphKeys.UPDATE_OPS)
+            losses = scope.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+            return Network(scaled, get_variables(scope), ops, losses)
 
     @staticmethod
     def make_actor_trainer(actor, critic, step):
-        """Build actor network optimizier performing action gradient ascent."""
+        """Build actor network optimizer performing gradient ascent."""
         with tf.variable_scope('training/actor'):
             # What is `actor.y`'s influence on the critic network's output?
             act_grad, = tf.gradients(critic.y, actor.y)  # (batchsize, dout)
@@ -172,7 +180,7 @@ class DDPG(Model):
                     for online, target in zip(src.vars, dst.vars)]
 
     @staticmethod
-    def make_noise(n, theta=.2, sigma=.4):
+    def make_noise(n, theta=.15, sigma=.2):
         """Ornstein-Uhlenbeck noise process."""
         with tf.variable_scope('OUNoise'):
             shape = to_tuple(n)
@@ -180,3 +188,11 @@ class DDPG(Model):
             noise = -theta * state + sigma * tf.random_normal(shape)
             # reset = state.assign(tf.zeros((n,)))
             return state.assign_add(noise)
+
+    @staticmethod
+    def scale(x, bounds_in, bounds_out):
+        with tf.variable_scope('scaling'):
+            min_in, max_in = bounds_in
+            min_out, max_out = bounds_out
+            return (((x - min_in) / (max_in - min_in)) *
+                    (max_out - min_out) + min_out)
