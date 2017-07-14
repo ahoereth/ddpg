@@ -18,16 +18,6 @@ class DDPG(Model):
 
     batchsize = 100
 
-    def __init__(self, env_name, memory=1e6, min_memory=1e4,
-                 update_frequency=1, state_stacksize=1, checkpoint=None,
-                 simulation_workers=2, train_workers=2, feed_workers=1):
-        """Create a new DDPG model."""
-        super(DDPG, self).__init__(
-            env_name=env_name, memory=memory, min_memory=min_memory,
-            update_frequency=update_frequency, state_stacksize=state_stacksize,
-            simulation_workers=simulation_workers, train_workers=train_workers,
-            feed_workers=feed_workers, checkpoint=checkpoint)
-
     @classmethod
     def make_network(cls, act_states, states, actions, rewards, terminals,
                      states_, training, step, action_bounds):
