@@ -16,7 +16,7 @@ Network = namedtuple('Network', ['y', 'vars', 'ops', 'losses'])
 class DDPG(Model):
     """Deep Deterministic Policy Gradient RL Model."""
 
-    batchsize = 100
+    batchsize = 64
 
     @classmethod
     def make_network(cls, act_states, states, actions, rewards, terminals,
