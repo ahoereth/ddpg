@@ -20,18 +20,15 @@ def summarize(name, value):
 
 class Model:
 
-    batchsize = 32
-
-    def __init__(self, env_name, memory=1e6, min_memory=1e4,
+    def __init__(self, env_name, *, memory=1e6, min_memory=1e4,
                  update_frequency=1, state_stacksize=1, checkpoint=None,
                  simulation_workers=2, train_workers=2, feed_workers=1,
-                 name_suffix='', config_name=''):
+                 batchsize=32, config_name=''):
         self.update_frequency = update_frequency
 
         time = datetime.now().strftime('%y%m%d-%H%M')
         name = type(self).__name__
-        self.config_name = getattr(self, 'config_name', config_name)
-        self.logdir = Path('logs') / name / time / self.config_name
+        self.logdir = Path('logs') / name / time / config_name
 
         self.step = tf.train.create_global_step()
         self.session = tf.Session()
@@ -58,7 +55,7 @@ class Model:
                             env.action_shape, action_dtype,
                             state_stacksize=state_stacksize,
                             min_memory=min_memory,
-                            batchsize=self.batchsize, workers=feed_workers)
+                            batchsize=batchsize, workers=feed_workers)
 
         # TODO(ahoereth): Explain what is going on here
         self.training = tf.placeholder_with_default(True, None, 'is_training')
@@ -69,8 +66,7 @@ class Model:
         action_states = tf.expand_dims(self.state, 0)
         self.action, init_op, self.train_op = self.make_network(
             action_states, states, actions, rewards, terminals, states_,
-            training=self.training, step=self.step,
-            action_bounds=env.action_bounds)
+            training=self.training, action_bounds=env.action_bounds)
 
         # Collect summaries, load checkpoint and/or initialize variables.
         self.summaries = tf.summary.merge_all()
