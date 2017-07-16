@@ -24,7 +24,7 @@ class Trainer(Thread):
                 self.training_queue.get(timeout=2)
             except Empty:
                 break
-            if random.random() < .01:  # Write logs sometimes.
+            if random.random() < .0025:  # Write logs sometimes.
                 step = self.train(create_summary=True)
                 print('{} steps done.'.format(step))
             else:
