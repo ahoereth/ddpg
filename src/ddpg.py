@@ -16,7 +16,12 @@ Network = namedtuple('Network', ['y', 'vars', 'ops', 'losses'])
 class DDPG(Model):
     """Deep Deterministic Policy Gradient RL Model."""
 
+    config_name = 'nodecay/nobatchnorm'
     batchsize = 64
+    weight_decay = False
+    bias_decay = False
+    actor_batch_normalization = False
+    critic_batch_normalization = False
 
     @classmethod
     def make_network(cls, act_states, states, actions, rewards, terminals,
@@ -67,8 +72,8 @@ class DDPG(Model):
 
         return action, init_ops, train_ops
 
-    @staticmethod
-    def dense(name, x, units, activation=None, decay=None, minmax=None):
+    @classmethod
+    def dense(cls, name, x, units, activation=None, decay=None, minmax=None):
         """Build a dense layer with uniform init and optional weight decay."""
         if minmax is None:
             minmax = 1 / np.sqrt(float(x.shape[1].value))
@@ -84,8 +89,8 @@ class DDPG(Model):
             activation=activation,
             kernel_initializer=initializer,
             bias_initializer=initializer,
-            kernel_regularizer=regularizer,
-            bias_regularizer=regularizer,
+            kernel_regularizer=regularizer if cls.weight_decay else None,
+            bias_regularizer=regularizer if cls.bias_decay else None,
         )
 
     @classmethod
@@ -93,9 +98,12 @@ class DDPG(Model):
         """Build a critic network q, the value function approximator."""
         is_batch = tf.shape(states)[0] > 1
         with tf.variable_scope(name, reuse=reuse) as scope:
-            states = tf.layers.batch_normalization(states, training=is_batch)
-            net = cls.dense('0', states, 100, tf.nn.relu, decay=True)
-            net = tf.layers.batch_normalization(net, training=is_batch)
+            net = states
+            if cls.critic_batch_normalization:
+                net = tf.layers.batch_normalization(net, training=is_batch)
+            net = cls.dense('0', net, 100, tf.nn.relu, decay=True)
+            if cls.critic_batch_normalization:
+                net = tf.layers.batch_normalization(net, training=is_batch)
             net = tf.concat([net, actions], axis=1)  # Actions enter the net
             net = cls.dense('1', net, 50, tf.nn.relu, decay=True)
             y = cls.dense('2_q', net, 1, decay=True, minmax=3e-3)
@@ -128,12 +136,15 @@ class DDPG(Model):
         is_batch = tf.shape(states)[0] > 1
         dout = np.prod(dout)
         with tf.variable_scope(name, reuse=reuse) as scope:
-            training = tf.shape(states)[0] > 1
-            states = tf.layers.batch_normalization(states, training=is_batch)
-            net = cls.dense('0', states, 100, tf.nn.relu)
-            net = tf.layers.batch_normalization(net, training=is_batch)
+            net = states
+            if cls.actor_batch_normalization:
+                net = tf.layers.batch_normalization(net, training=is_batch)
+            net = cls.dense('0', net, 100, tf.nn.relu)
+            if cls.actor_batch_normalization:
+                net = tf.layers.batch_normalization(net, training=is_batch)
             net = cls.dense('1', net, 50, tf.nn.relu)
-            net = tf.layers.batch_normalization(net, training=is_batch)
+            if cls.actor_batch_normalization:
+                net = tf.layers.batch_normalization(net, training=is_batch)
             y = cls.dense('2', net, dout, tf.nn.tanh, minmax=3e-3)
             scaled = cls.scale(y, bounds_in=(-1, 1), bounds_out=bounds)
             ops = scope.get_collection(tf.GraphKeys.UPDATE_OPS)

@@ -15,8 +15,7 @@ start = time.time()
 
 model = DDPG(ENV_NAME, memory=1e6, min_memory=1e4, update_frequency=1,
              state_stacksize=1, simulation_workers=1,
-             train_workers=2, feed_workers=10, checkpoint=CHECKPOINT,
-             name_suffix='norm/decay:1e-2')
+             train_workers=2, feed_workers=10, checkpoint=CHECKPOINT)
 model.train(1000000)
 # model.demo()
 

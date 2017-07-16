@@ -25,11 +25,13 @@ class Model:
     def __init__(self, env_name, memory=1e6, min_memory=1e4,
                  update_frequency=1, state_stacksize=1, checkpoint=None,
                  simulation_workers=2, train_workers=2, feed_workers=1,
-                 name_suffix=''):
+                 name_suffix='', config_name=''):
         self.update_frequency = update_frequency
 
         time = datetime.now().strftime('%y%m%d-%H%M')
-        self.logdir = Path('logs') / type(self).__name__ / time / name_suffix
+        name = type(self).__name__
+        self.config_name = getattr(self, 'config_name', config_name)
+        self.logdir = Path('logs') / name / time / self.config_name
 
         self.step = tf.train.create_global_step()
         self.session = tf.Session()
