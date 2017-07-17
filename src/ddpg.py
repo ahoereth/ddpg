@@ -22,7 +22,7 @@ class DDPG(Model):
         *,
         batchsize=64,
         weight_decay=True,
-        bias_decay=True,  # No defined in paper.
+        bias_decay=True,  # Not defined by original paper.
         decay_scale=1e-2,
         actor_batch_normalization=True,
         critic_batch_normalization=True,
@@ -30,6 +30,7 @@ class DDPG(Model):
         critic_learning_rate=1e-3,
         actor_learning_rate=1e-4,
         tau=1e-3,
+        config_name='',
         **kwargs
     ):
         self.weight_decay = weight_decay
@@ -42,6 +43,7 @@ class DDPG(Model):
         self.gamma = gamma
         self.tau = tau
         config_name = to_logpath(
+            config_name,
             weightDecay=weight_decay, biasDecay=bias_decay,
             decayScale=decay_scale, actorBN=actor_batch_normalization,
             criticBN=critic_batch_normalization,

@@ -29,9 +29,11 @@ def to_tf_dtype(dtype):
     return np2tf.get(dtype, dtype)
 
 
-def to_logpath(**kwargs):
+def to_logpath(*args, **kwargs):
     """Creates a path given kwargs."""
     logdir = Path('')
+    for arg in args:
+        logdir = logdir / str(arg)
     elems = [(k, v) for k, v in kwargs.items() if v is not False]
     for k, v in sorted(elems, key=lambda p: p[0]):
         logdir = logdir / (k if v is True else '{}:{}'.format(k, v))
