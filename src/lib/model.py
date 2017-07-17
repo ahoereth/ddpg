@@ -110,15 +110,16 @@ class Model:
                                                  self.train_op],
                                                 {self.training: True})
             self.writer.add_summary(summary, step)
-            reward = self.rewards
-            self.writer.add_summary(summarize('misc/episodes', self.episodes),
-                                    step)
-            self.writer.add_summary(summarize('misc/envsteps', self.env_steps),
-                                    step)
-            self.writer.add_summary(summarize('training/r/avg', reward.mean()),
-                                    step)
-            self.writer.add_summary(summarize('training/r/max', reward.max()),
-                                    step)
+            episodes = summarize('misc/episodes', self.episodes)
+            self.writer.add_summary(episodes, step)
+            envsteps = summarize('misc/envsteps', self.env_steps)
+            self.writer.add_summary(envsteps, step)
+            rewards_ema = summarize('training/r/ema', self.rewards_ema)
+            self.writer.add_summary(rewards_ema, step)
+            rewards_avg = summarize('training/r/avg', self.rewards.mean())
+            self.writer.add_summary(rewards_avg, step)
+            rewards_max = summarize('training/r/max', self.rewards.max())
+            self.writer.add_summary(rewards_max, step)
         else:
             step, _ = self.session.run([self.step, self.train_op],
                                        {self.training: True})
@@ -160,11 +161,12 @@ class Model:
     @property
     def steps(self):
         """Training/SGD steps."""
-        return self.session.run(self.steps)
+        return self.session.run(self.step)
 
     @property
     def rewards(self):
-        rewards = []
-        for agent in self.agents:
-            rewards.extend(agent.rewards)
-        return np.array(rewards)
+        return np.array([agent.rewards for agent in self.agents]).flatten()
+
+    @property
+    def rewards_ema(self):
+        return np.array([agent.rewards_ema for agent in self.agents]).mean()

@@ -25,6 +25,7 @@ class Agent(Thread):
         self.pretrain_steps = min_memory_size
         self.observation = None
         self.rewards = deque([], 10)
+        self.rewards_ema = 0
         self.episodes = 0
         self.steps = 0
 
@@ -54,6 +55,8 @@ class Agent(Thread):
                     self.env.render(close=terminal)
 
             self.rewards.append(self.env.episode_reward)
+            self.rewards_ema -= 1e-3 * (self.rewards_ema -
+                                        self.env.episode_reward)
             # Stop simulation after one episode when demoing.
             if demo:
                 break
