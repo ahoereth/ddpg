@@ -31,6 +31,7 @@ class Model:
         self.logdir = Path('logs') / name / time / config_name
 
         self.step = tf.train.create_global_step()
+        self.planned_steps = tf.Variable(tf.constant(0, dtype=tf.int64))
         self.session = tf.Session()
 
         self.training_queue = Queue(1000)
@@ -66,7 +67,8 @@ class Model:
         action_states = tf.expand_dims(self.state, 0)
         self.action, init_op, self.train_op = self.make_network(
             action_states, states, actions, rewards, terminals, states_,
-            training=self.training, action_bounds=env.action_bounds)
+            training=self.training, action_bounds=env.action_bounds,
+            steps=self.planned_steps)
 
         # Collect summaries, load checkpoint and/or initialize variables.
         self.summaries = tf.summary.merge_all()
@@ -86,7 +88,7 @@ class Model:
 
     @classmethod
     def make_network(cls, action_states, states, actions, rewards, terminals,
-                     states_, **kwargs):
+                     states_, steps):
         """Create the RL network. To be implemented by subclasses."""
         raise NotImplementedError
 
@@ -123,6 +125,8 @@ class Model:
         return step
 
     def train(self, steps=1):
+        self.session.run(self.planned_steps.assign(int(steps)))
+
         for agent in self.agents:
             if not agent.is_alive():
                 agent.start()
