@@ -1,0 +1,227 @@
+from collections import namedtuple
+from datetime import datetime
+from pathlib import Path
+from queue import Queue
+
+import tensorflow as tf
+import numpy as np
+from tensorflow.contrib.framework import get_variables
+
+from .lib import Model, to_tuple, to_logpath
+
+
+Network = namedtuple('Network', ['y', 'vars', 'ops', 'losses'])
+
+
+class DDPG(Model):
+    """Deep Deterministic Policy Gradient RL Model."""
+
+    def __init__(
+        self,
+        env_name,
+        *,
+        batchsize=64,
+        weight_decay=True,
+        bias_decay=True,  # No defined in paper.
+        decay_scale=1e-2,
+        actor_batch_normalization=True,
+        critic_batch_normalization=True,
+        gamma=0.99,
+        critic_learning_rate=1e-3,
+        actor_learning_rate=1e-4,
+        tau=1e-3,
+        **kwargs
+    ):
+        self.weight_decay = weight_decay
+        self.bias_decay = bias_decay
+        self.decay_scale = decay_scale
+        self.actor_batch_normalization = actor_batch_normalization
+        self.critic_batch_normalization = critic_batch_normalization
+        self.critic_learning_rate = critic_learning_rate
+        self.actor_learning_rate = actor_learning_rate
+        self.gamma = gamma
+        self.tau = tau
+        config_name = to_logpath(
+            weightDecay=weight_decay, biasDecay=bias_decay,
+            decayScale=decay_scale, actorBN=actor_batch_normalization,
+            criticBN=critic_batch_normalization,
+            criticLR=critic_learning_rate, actorLR=actor_learning_rate,
+            gamma=gamma, tau=tau, env=env_name)
+        super(DDPG, self).__init__(env_name, batchsize=batchsize,
+                                   config_name=config_name, **kwargs)
+
+    def make_network(self, act_states, states, actions, rewards, terminals,
+                     states_, training, action_bounds):
+        """Create the DDPG 4 network network."""
+        # Create the online and target actor networks. The online actor
+        # once takes the training states and once the 'action states' as
+        # inputs and, together with the noise, provides the current action
+        with tf.variable_scope('actor'):
+            actshape = actions.shape.as_list()[1:]
+            actor = self.make_actor(states, actshape, action_bounds)
+            actor_short = self.make_actor(act_states, actshape, action_bounds,
+                                          reuse=True)
+            action = actor_short.y + tf.cond(training,
+                                             lambda: self.make_noise(actshape),
+                                             lambda: tf.constant(0.))
+            action = tf.clip_by_value(action, *action_bounds)  # after noise
+            actor_ = self.make_actor(states_, actshape, action_bounds,
+                                     name='target')
+        tf.contrib.layers.summarize_tensors(actor.vars)
+
+        # Create the online and target critic networks. This has a small
+        # speciality: The online critic is created twice, once using the
+        # fed states and fed actions as input and once using the fed states
+        # and online actor's output as input. The latter is required to compute
+        # the `policy gradient` to train the actor. The policy gradient
+        # directly depends on how the online policy would currently 'act' in
+        # the given state. The important part here is that those two critics
+        # (in the following `critic` and `critic_short`) actually are the same
+        # network, just with different inputs, but shared (!) parameters.
+        with tf.variable_scope('critic'):
+            critic = self.make_critic(states, actions)
+            critic_short = self.make_critic(states, actor.y, reuse=True)
+            critic_ = self.make_critic(states_, actor_.y, 'target')
+        tf.contrib.layers.summarize_tensors(critic.vars)
+
+        # Create training and soft update operations.
+        train_ops = [
+            self.make_critic_trainer(critic, critic_, terminals, rewards,
+                                     self.gamma, self.critic_learning_rate),
+            self.make_actor_trainer(actor, critic_short,
+                                    self.actor_learning_rate),
+            self.make_soft_updates(critic, critic_, tau=self.tau),
+            self.make_soft_updates(actor, actor_, tau=self.tau),
+        ]
+
+        # Sync the two network pairs initially.
+        init_ops = [self.make_hard_updates(critic, critic_) +
+                    self.make_hard_updates(actor, actor_)]
+
+        return action, init_ops, train_ops
+
+    def dense(self, name, x, units, activation=None, decay=None, minmax=None):
+        """Build a dense layer with uniform init and optional weight decay."""
+        if minmax is None:
+            fan_in = x.shape[1].value
+            minmax = 1 / np.sqrt(float(fan_in))
+        initializer = tf.random_uniform_initializer(-minmax, minmax)
+
+        regularizer = None
+        if decay is not None:
+            regularizer = tf.contrib.layers.l2_regularizer(self.decay_scale)
+
+        return tf.layers.dense(
+            x, units,
+            name=name,
+            activation=activation,
+            kernel_initializer=initializer,
+            bias_initializer=initializer,
+            kernel_regularizer=regularizer if self.weight_decay else None,
+            bias_regularizer=regularizer if self.bias_decay else None,
+        )
+
+    def make_critic(self, states, actions, name='online', reuse=False):
+        """Build a critic network q, the value function approximator."""
+        is_batch = tf.shape(states)[0] > 1
+        with tf.variable_scope(name, reuse=reuse) as scope:
+            net = states
+            if self.critic_batch_normalization:
+                net = tf.layers.batch_normalization(net, training=is_batch)
+            net = self.dense('0', net, 100, tf.nn.relu, decay=True)
+            if self.critic_batch_normalization:
+                net = tf.layers.batch_normalization(net, training=is_batch)
+            net = tf.concat([net, actions], axis=1)  # Actions enter the net
+            net = self.dense('1', net, 50, tf.nn.relu, decay=True)
+            y = self.dense('2_q', net, 1, decay=True, minmax=3e-3)
+            ops = scope.get_collection(tf.GraphKeys.UPDATE_OPS)
+            losses = scope.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+            return Network(tf.squeeze(y), get_variables(scope), ops, losses)
+
+    def make_actor(self, states, dout, bounds, name='online', reuse=False):
+        """Build an actor network mu, the policy function approximator."""
+        is_batch = tf.shape(states)[0] > 1
+        dout = np.prod(dout)
+        with tf.variable_scope(name, reuse=reuse) as scope:
+            net = states
+            if self.actor_batch_normalization:
+                net = tf.layers.batch_normalization(net, training=is_batch)
+            net = self.dense('0', net, 100, tf.nn.relu)
+            if self.actor_batch_normalization:
+                net = tf.layers.batch_normalization(net, training=is_batch)
+            net = self.dense('1', net, 50, tf.nn.relu)
+            if self.actor_batch_normalization:
+                net = tf.layers.batch_normalization(net, training=is_batch)
+            y = self.dense('2', net, dout, tf.nn.tanh, minmax=3e-3)
+            scaled = self.scale(y, bounds_in=(-1, 1), bounds_out=bounds)
+            ops = scope.get_collection(tf.GraphKeys.UPDATE_OPS)
+            losses = scope.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+            return Network(scaled, get_variables(scope), ops, losses)
+
+    @staticmethod
+    def make_critic_trainer(critic, critic_, terminals, rewards,
+                            gamma=.99, learning_rate=1e-3):
+        """Build critic network optimizer minimizing MSE.
+
+        Terminal states are used as final horizon, meaning future rewards are
+        only considered if the agent did not reach a terminal state.
+        """
+        with tf.variable_scope('training/critic'):
+            tf.summary.scalar('q/max', tf.reduce_max(critic.y))
+            tf.summary.scalar('q/mean', tf.reduce_mean(critic.y))
+            targets = tf.where(terminals, rewards, rewards + gamma * critic_.y)
+            loss = tf.losses.mean_squared_error(targets, critic.y)
+            tf.summary.scalar('loss', loss)
+            if len(critic.losses):
+                loss += tf.add_n(critic.losses)
+            optimizer = tf.train.AdamOptimizer(learning_rate)
+            with tf.control_dependencies(critic.ops):
+                return optimizer.minimize(loss, tf.train.get_global_step())
+
+    @staticmethod
+    def make_actor_trainer(actor, critic, learning_rate=1e-4):
+        """Build actor network optimizer performing gradient ascent."""
+        with tf.variable_scope('training/actor'):
+            # What is `actor.y`'s influence on the critic network's output?
+            act_grad, = tf.gradients(critic.y, actor.y)  # (batchsize, dout)
+            act_grad = tf.stop_gradient(act_grad)
+            # Use `act_grad` as initial value for the `actor.y` gradients --
+            # normally this is set to 1s by TF. Results in one value per param.
+            policy_gradients = tf.gradients(actor.y, actor.vars, -act_grad)
+            mapping = zip(policy_gradients, actor.vars)
+            with tf.control_dependencies(actor.ops):
+                optimizer = tf.train.AdamOptimizer(learning_rate)
+                return optimizer.apply_gradients(mapping,
+                                                 tf.train.get_global_step())
+
+    @staticmethod
+    def make_hard_updates(src, dst):
+        """Overwrite target with online network parameters."""
+        with tf.variable_scope('hardupdates'):
+            return [target.assign(online)
+                    for online, target in zip(src.vars, dst.vars)]
+
+    @staticmethod
+    def make_soft_updates(src, dst, tau=1e-3):
+        """Soft update the dst net's parameters using those of the src net."""
+        with tf.variable_scope('softupdates'):
+            return [target.assign(tau * online + (1 - tau) * target)
+                    for online, target in zip(src.vars, dst.vars)]
+
+    @staticmethod
+    def make_noise(n, theta=.15, sigma=.2):
+        """Ornstein-Uhlenbeck noise process."""
+        shape = to_tuple(n)
+        with tf.variable_scope('OUNoise'):
+            state = tf.Variable(tf.zeros(shape))
+            noise = -theta * state + sigma * tf.random_normal(shape)
+            # reset = state.assign(tf.zeros((n,)))
+            return state.assign_add(noise)
+
+    @staticmethod
+    def scale(x, bounds_in, bounds_out):
+        min_in, max_in = bounds_in
+        min_out, max_out = bounds_out
+        with tf.variable_scope('scaling'):
+            return (((x - min_in) / (max_in - min_in)) *
+                    (max_out - min_out) + min_out)

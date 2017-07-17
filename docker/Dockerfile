@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:1.2.0-rc2-py3
+FROM tensorflow/tensorflow:1.2.1-py3
 
 RUN apt-add-repository -y ppa:george-edison55/cmake-3.x \
  && echo deb http://archive.ubuntu.com/ubuntu trusty-backports main restricted universe multiverse | tee /etc/apt/sources.list.d/trusty-backports.list \
