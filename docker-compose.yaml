@@ -13,17 +13,19 @@ services:
       context: docker
       dockerfile: Dockerfile.tf
     container_name: tensorflow
-    depends_on:
-      - xdummy
+    # depends_on:
+    #   - xdummy
     environment:
-      DISPLAY: :1
-    command: python3 run.py
+      DISPLAY: :0 # :1
+    command: tail -f /dev/null  # python3 ${TARGET:-run.py}
+    privileged: True
     working_dir: /wd
     ports:
       - 8888:8888
     volumes:
-      - X11:/tmp/.X11-unix
-      - /home/ubuntu:/wd
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      # - X11:/tmp/.X11-unix
+      - ${WD:-/home/ubuntu}:/wd
   tensorboard:
     image: tensorflow/tensorflow:1.2.1-py3
     container_name: tensorboard

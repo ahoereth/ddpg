@@ -1,15 +1,23 @@
+import random
+
 import numpy as np
 import gym
 from gym import spaces
 
+
+from .torcs import Torcs
 from .utils import to_tuple
 
 
 class Environment:
     def __init__(self, env_name):
-        self.gym = gym.make(env_name)
-        self.render = self.gym.render
-        self.close = self.gym.close
+        self.name = env_name
+        if env_name == 'Torcs':
+            self.gym = Torcs(throttle=True)
+        else:
+            self.gym = gym.make(env_name)
+        self.render = getattr(self.gym, 'render', lambda: None)
+        self.close = getattr(self.gym, 'close', lambda: None)
 
         # Determine the environments observation properties.
         observation_space = self.gym.observation_space
