@@ -12,7 +12,8 @@ import numpy as np
 
 from .snakeoil3 import Client as snakeoil3
 
-
+HOST = os.environ.get('TORCS_HOST', 'localhost')
+PORT = int(os.environ.get('TORCS_PORT', '3101'))
 FILEDIR = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -143,7 +144,7 @@ class Torcs:
 
         # Modify here if you use multiple tracks in the environment
         # Open new UDP in vtorcs
-        self.client = snakeoil3(p=3101, vision=self.vision)
+        self.client = snakeoil3(H=HOST, p=PORT, vision=self.vision)
         self.client.MAX_STEPS = np.inf
 
         self.client.get_servers_input()  # Get the initial input from torcs
@@ -154,15 +155,17 @@ class Torcs:
         return self.observation
 
     def end(self):
-        os.system('pkill torcs')
+        # os.system('pkill torcs')
+        ...
 
     def reset_torcs(self):
-        os.system('pkill torcs')
-        time.sleep(0.5)
-        os.system('torcs -nofuel -nolaptime &')
-        time.sleep(0.5)
-        os.system('sh {}'.format(os.path.join(FILEDIR, 'autostart.sh')))
-        time.sleep(0.5)
+        # os.system('pkill torcs')
+        # time.sleep(0.5)
+        # os.system('torcs -nofuel -nolaptime &')
+        # time.sleep(0.5)
+        # os.system('sh {}'.format(os.path.join(FILEDIR, 'autostart.sh')))
+        # time.sleep(0.5)
+        ...
 
     def agent_to_torcs(self, act):
         return {key: val for key, val in zip(['steer', 'accel', 'gear'], act)}

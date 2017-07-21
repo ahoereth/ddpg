@@ -23,28 +23,3 @@ RUN pip3 install -U pip setuptools gym[all]
 #  && python3 setup.py clean \
 #  && python3 setup.py build \
 #  && python3 setup.py develop
-
-# Torcs
-RUN apt-get install -y -qq \
-    xautomation \
-    libglib2.0-dev \
-    libgl1-mesa-dev \
-    libglu1-mesa-dev  \
-    freeglut3-dev \
-    libplib-dev \
-    libopenal-dev \
-    libalut-dev \
-    libxi-dev \
-    libxmu-dev \
-    libxrender-dev \
-    libxrandr-dev \
-    libpng12-dev
-RUN git clone https://github.com/ugo-nama-kun/gym_torcs.git /tmp/gym_torcs \
- && cd /tmp/gym_torcs/vtorcs-RL-color \
- && ./configure \
- && make \
- && make install \
- && make datainstall
-
-CMD ["/run_jupyter.sh", "--allow-root"]
-
