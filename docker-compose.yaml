@@ -8,23 +8,36 @@ services:
     volumes:
       - X11:/tmp/.X11-unix
     restart: always
+  torcs:
+    build:
+      context: docker
+      dockerfile: Dockerfile.torcs
+    container_name: torcs
+    ports:
+      - 3101:3101  # torcs
+      - 5901:5901  # vnc
+      - 6901:6901  # web vnc
+    restart: always
+    privileged: True
   tensorflow:
     build:
       context: docker
       dockerfile: Dockerfile.tf
     container_name: tensorflow
-    # depends_on:
-    #   - xdummy
+    depends_on:
+      - xdummy
+    links:
+      - torcs
     environment:
-      DISPLAY: :0 # :1
+      DISPLAY: :1
+      TORCS_HOST: torcs
+      TORCS_PORT: 3101
     command: tail -f /dev/null  # python3 ${TARGET:-run.py}
-    privileged: True
     working_dir: /wd
     ports:
       - 8888:8888
     volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
-      # - X11:/tmp/.X11-unix
+      - X11:/tmp/.X11-unix
       - ${WD:-/home/ubuntu}:/wd
   tensorboard:
     image: tensorflow/tensorflow:1.2.1-py3
@@ -33,7 +46,7 @@ services:
     restart: always
     working_dir: /wd
     volumes:
-      - /home/ubuntu:/wd
+      - ${WD:-/home/ubuntu}/logs:/wd
     ports:
       - 6006:6006
 volumes:
