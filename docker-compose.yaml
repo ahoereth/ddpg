@@ -12,6 +12,9 @@ services:
     build:
       context: docker
       dockerfile: Dockerfile.torcs
+      args:
+        DISPLAY_WIDTH: 64
+        DISPLAY_HEIGHT: 64
     container_name: torcs
     ports:
       - 3101:3101  # torcs

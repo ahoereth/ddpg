@@ -1,12 +1,15 @@
 FROM consol/ubuntu-xfce-vnc
 
 USER 0
-ENV SCREEN_WIDTH 640
-ENV SCREEN_HEIGHT 480
-ENV VNC_RESOLUTION ${SCREEN_WIDTH}x${SCREEN_HEIGHT}
-ENV VNC_PW secret
 
-# Dependencies
+ARG DISPLAY_WIDTH=64
+ARG DISPLAY_HEIGHT=64
+
+ENV SCREEN_WIDTH=640
+ENV SCREEN_HEIGHT=480
+ENV VNC_RESOLUTION=${SCREEN_WIDTH}x${SCREEN_HEIGHT}
+ENV VNC_PW=torcs
+
 RUN apt-get update -y -qq \
  && DEBIAN_FRONTEND=noninteractive \
     apt-get install -y -qq \
@@ -27,18 +30,15 @@ RUN apt-get update -y -qq \
     git \
     gdb
 
-# Torcs
-# Turining off sound and changing resolution to 60x60 before compiling.
 RUN git clone https://github.com/ugo-nama-kun/gym_torcs.git gym_torcs \
  && cd gym_torcs/vtorcs-RL-color \
  && cp exp-settings/config/sound.xml src/modules/graphic/ssggraph/sound.xml \
- && sed -re 's/attnum name="x" val="640"/attnum name="x" val="60"/' -i src/libs/tgfclient/screen.xml \
- && sed -re 's/attnum name="y" val="480"/attnum name="y" val="60"/' -i src/libs/tgfclient/screen.xml \
+ && sed -re s/attnum name="x" val="640"/attnum name="x" val="${DISPLAY_WIDTH}"/ -i src/libs/tgfclient/screen.xml \
+ && sed -re s/attnum name="y" val="480"/attnum name="y" val="${DISPLAY_HEIGHT}"/ -i src/libs/tgfclient/screen.xml \
  && ./configure \
  && make \
  && make install \
  && make datainstall
 
-# Startup script for restarting torcs every minute.
 ADD run_torcs.sh start.sh
 CMD ./start.sh
