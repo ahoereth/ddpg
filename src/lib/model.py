@@ -120,6 +120,8 @@ class Model:
             self.writer.add_summary(rewards_avg, step)
             rewards_max = summarize('training/r/max', self.rewards.max())
             self.writer.add_summary(rewards_max, step)
+            print('Episode {} with {} steps, rewards max/avg {}/{} '.format(
+                self.episodes, step, self.rewards.max(), self.rewards.mean()))
         else:
             step, _ = self.session.run([self.step, self.train_op],
                                        {self.training: True})
