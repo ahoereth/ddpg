@@ -26,7 +26,6 @@ class Trainer(Thread):
                 break
             if random.random() < .001:  # Write logs sometimes.
                 step = self.train(create_summary=True)
-                print('{} steps done.'.format(step))
             else:
                 step = self.train()
             if step % 1000 == 0:  # Save model from time to time.
