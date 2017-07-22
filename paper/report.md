@@ -1,6 +1,6 @@
 % Continuous Control with Deep Deterministic Policy Gradients
 % John Berroa, Felix Meyer zu Dreyhausen, Alexander Höreth
-% Universität Osnabrück
+% University of Osnabrück
 
 # Introduction
 With the *Deep Deterministic Policy Gradient*, or DDPG, we want to be able to train an artifical agent through reinforcement learning how to act in an environment in whic the actions it takes are on a continuous scale.  Some examples of this would be car racing (e.g. steering, gas pressure, brake pressuire), flying (throttle, yoke pressures in 2 axes), and games (e.g. Lander).  Continuous control reinforcement learning brings reinforcement learning out of the realm of toy applications and the theoretical and brings it into the continuous world of reality.  To do this however, requires a more complex approach than normal reinforcement learning.  Below we will outline the idea behind DDPG.
@@ -20,8 +20,38 @@ The following sections will be laid out as follows: first, we will describe in d
 
 ## Policy Gradient
 
-## Deterministc Policy Gradient
-Once we have to solved, all we have to do is bring it over into a neural network in order to create the *deep* deterministic policy gradient. 
+## Deterministic Policy Gradient
+Once we have to solved, all we have to do is bring it over into a neural network in order to create the *deep* deterministic policy gradient.
+
+# Implementation
+
+## Tutorial
+Because of the complexity of the employed neural network (which is basically four networks), we provide an extensivley documented and interactive tutorial. The tutorial guides the user through a complete implementation of the DDPG algorithm applied to the Lunar Lander (see figure ##) environment from the OpenAI Gym [@Brockman2016].[^lander]
+
+Additionally, targeted for those new to reinforcement learning in general, we provide a notebook all around tabular Q-learning solving the classical Frozen Lake game. In frozen lake one has to control an agent over a small map from start to goal. The challenge is, that the environment is non deterministic: At each step there is a $33%$ chance of slipping and moving orthogonally to the originally executed action.
+
+The notebook implements three algorithms: Q-Learning as taught in the Institute of Cognitive Science's Machine Learning lecture on the deterministic game (meaning there is no slippery ice because the algorithm is unable to solve it otherwise), Q-Learning itself and the classical, non-greedy SARSA algorithm.
+
+The difference between Q-Learning and SARSA in short is that Q-Learning greedily chooses the maximum future Q value for the Bellman equation approximation while SARSA (which fittingly is an abbreviation for *S*tate, *A*ction, *R*eward, *S*tate, *A*ction) uses the current policy for that estimation. For more details, see the notebook.[^lake]
+
+[^lander]: [github.com/ahoereth/ddpg $\rightarrow$ exploration/Lander.ipynb](https://github.com/ahoereth/ddpg/blob/master/exploration/Lander.ipynb)
+[^lake]: [github.com/ahoereth/ddpg $\rightarrow$ exploration/FrozenLake.ipynb](https://github.com/ahoereth/ddpg/blob/master/exploration/FrozenLake.ipynb)
+
+## DDPG
+- based on a hand full of classes which interact with one another
+  - agent & environment & memory, each pair a thread
+  - multimemory, enabling sampling from many memories
+  - dataflow, using queues for feeding the data to the tensorflow graph
+  - trainer, threaded training of a model
+  - model, abstract class for implementing reinforcement learning algorithms on gym-like tasks
+  - DDPG & DQN (todo), inheriting from the model class and implementing an algorithm each
+- only the DDPG class needs to be instantiated with all its hyperparameter settings and the name of an environment, everything else is abstracted
+
+
+## Torcs
+- really old game, hard to get up and running
+- abstracted away into a docker container so we can run it remotely
+
 
 # Training the Deep Deterministic Policy Gradient Algorithm
 
