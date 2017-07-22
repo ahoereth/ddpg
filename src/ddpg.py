@@ -1,5 +1,6 @@
 from collections import namedtuple
 from datetime import datetime
+from functools import partial
 from pathlib import Path
 from queue import Queue
 
@@ -30,6 +31,9 @@ class DDPG(Model):
         critic_learning_rate=1e-3,
         actor_learning_rate=1e-4,
         tau=1e-3,
+        mu=0.,
+        theta=.15,
+        sigma=.2,
         config_name='',
         **kwargs
     ):
@@ -42,6 +46,9 @@ class DDPG(Model):
         self.actor_learning_rate = actor_learning_rate
         self.gamma = gamma
         self.tau = tau
+        self.mu = mu
+        self.theta = theta
+        self.sigma = sigma
         config_name = to_logpath(
             config_name,
             weightDecay=weight_decay, biasDecay=bias_decay,
@@ -55,23 +62,25 @@ class DDPG(Model):
     def make_network(self, act_states, states, actions, rewards, terminals,
                      states_, training, action_bounds, steps):
         """Create the DDPG 4 network network."""
+        step = tf.to_float(tf.train.get_global_step())
+
         # Create the online and target actor networks. The online actor
         # once takes the training states and once the 'action states' as
         # inputs and, together with the noise, provides the current action
+        make_noise = partial(self.make_noise, mu=self.mu, theta=self.theta,
+                             sigma=self.sigma)
+        make_actor = partial(self.make_actor, dout=actions.shape.as_list()[1:],
+                             bounds=action_bounds)
         with tf.variable_scope('actor'):
-            actshape = actions.shape.as_list()[1:]
-            actor = self.make_actor(states, actshape, action_bounds)
-            actor_short = self.make_actor(act_states, actshape, action_bounds,
-                                          reuse=True)
-            epsilon = (1. - tf.to_float(tf.train.get_global_step()) *
-                       (1. / tf.to_float(steps)))
+            actor = make_actor(states)
+            actor_short = make_actor(act_states, reuse=True)
+            actor_ = make_actor(states_, name='target')
+            epsilon = tf.maximum(0, (1. - step * (1. / tf.to_float(steps))))
             noise = epsilon * tf.cond(training,
-                                      lambda: self.make_noise(actshape),
+                                      lambda: make_noise(actshape),
                                       lambda: tf.constant(0.))
             action = actor_short.y + epsilon * noise
             action = tf.clip_by_value(action, *action_bounds)  # after noise
-            actor_ = self.make_actor(states_, actshape, action_bounds,
-                                     name='target')
         tf.contrib.layers.summarize_tensors(actor.vars)
 
         # Create the online and target critic networks. This has a small
@@ -219,12 +228,15 @@ class DDPG(Model):
                     for online, target in zip(src.vars, dst.vars)]
 
     @staticmethod
-    def make_noise(n, theta=.15, sigma=.2):
-        """Ornstein-Uhlenbeck noise process."""
+    def make_noise(n, mu=0., theta=.15, sigma=.2):
+        """Ornstein-Uhlenbeck noise process.
+
+        Mu, theta and sigma can either be of size n or floats.
+        """
         shape = to_tuple(n)
         with tf.variable_scope('OUNoise'):
-            state = tf.Variable(tf.zeros(shape))
-            noise = -theta * state + sigma * tf.random_normal(shape)
+            state = tf.Variable(tf.ones(shape) * mu)
+            noise = theta * (mu - state) + sigma * tf.random_normal(shape)
             # reset = state.assign(tf.zeros((n,)))
             return state.assign_add(noise)
 
