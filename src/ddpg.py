@@ -203,10 +203,16 @@ class DDPG(Model):
         with tf.variable_scope('training/actor'):
             # What is `actor.y`'s influence on the critic network's output?
             act_grad, = tf.gradients(critic.y, actor.y)  # (batchsize, dout)
-            act_grad = tf.stop_gradient(act_grad)
+            act_grad = tf.stop_gradient(act_grad)  # TODO: needed?
             # Use `act_grad` as initial value for the `actor.y` gradients --
             # normally this is set to 1s by TF. Results in one value per param.
             policy_gradients = tf.gradients(actor.y, actor.vars, -act_grad)
+
+            # TODO: Investigate the following way to compute the gradient:
+            # batchsize = tf.to_float(tf.shape(critic.y)[0])
+            # policy_gradients = tf.gradients(critic.y, actor.vars)
+            # policy_gradients = [-grad / batchsize
+            #                     for grad in policy_gradients]
             mapping = zip(policy_gradients, actor.vars)
             with tf.control_dependencies(actor.ops):
                 optimizer = tf.train.AdamOptimizer(learning_rate)
