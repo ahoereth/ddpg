@@ -60,7 +60,7 @@ class DDPG(Model):
                                    config_name=config_name, **kwargs)
 
     def make_network(self, act_states, states, actions, rewards, terminals,
-                     states_, training, action_bounds, steps):
+                     states_, training, action_bounds, exploration_steps):
         """Create the DDPG 4 network network."""
         step = tf.to_float(tf.train.get_global_step())
 
@@ -72,12 +72,12 @@ class DDPG(Model):
         action_shape = actions.shape.as_list()[1:]
         make_actor = partial(self.make_actor, dout=action_shape,
                              bounds=action_bounds)
-        print(action_shape)
         with tf.variable_scope('actor'):
             actor = make_actor(states)
             actor_short = make_actor(act_states, reuse=True)
             actor_ = make_actor(states_, name='target')
-            epsilon = tf.maximum(0., (1. - step * (1. / tf.to_float(steps))))
+            epsilon = tf.maximum(0., (1. - step *
+                                      (1. / tf.to_float(exploration_steps))))
             noise = epsilon * tf.cond(training,
                                       lambda: make_noise(action_shape),
                                       lambda: tf.constant(0.))

@@ -1,3 +1,0 @@
-[submodule "gym_torcs"]
-	path = src/lib/gym_torcs
-	url = https://github.com/ugo-nama-kun/gym_torcs
