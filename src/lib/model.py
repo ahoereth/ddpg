@@ -23,7 +23,7 @@ class Model:
     def __init__(self, env_name, *, memory=1e6, min_memory=1e4,
                  update_frequency=1, state_stacksize=1, checkpoint=None,
                  simulation_workers=2, train_workers=2, feed_workers=1,
-                 batchsize=32, config_name=''):
+                 batchsize=32, exploration_steps=1e5, config_name=''):
         self.update_frequency = update_frequency
 
         time = datetime.now().strftime('%y%m%d-%H%M')
@@ -31,7 +31,6 @@ class Model:
         self.logdir = Path('logs') / name / time / config_name
 
         self.step = tf.train.create_global_step()
-        self.planned_steps = tf.Variable(tf.constant(0, dtype=tf.int64))
         self.session = tf.Session()
 
         self.training_queue = Queue(1000)
@@ -68,7 +67,7 @@ class Model:
         self.action, init_op, self.train_op = self.make_network(
             action_states, states, actions, rewards, terminals, states_,
             training=self.training, action_bounds=env.action_bounds,
-            steps=self.planned_steps)
+            exploration_steps=exploration_steps)
 
         # Collect summaries, load checkpoint and/or initialize variables.
         self.summaries = tf.summary.merge_all()
@@ -120,16 +119,15 @@ class Model:
             self.writer.add_summary(rewards_avg, step)
             rewards_max = summarize('training/r/max', self.rewards.max())
             self.writer.add_summary(rewards_max, step)
-            print('Episode {} with {} steps, rewards max/avg {}/{} '.format(
-                self.episodes, step, self.rewards.max(), self.rewards.mean()))
+            print('Episode {} with {} steps, rewards max/avg {:.2f}/{:.2f}'
+                  .format(self.episodes, step, self.rewards.max(),
+                          self.rewards.mean()))
         else:
             step, _ = self.session.run([self.step, self.train_op],
                                        {self.training: True})
         return step
 
     def train(self, steps=1):
-        self.session.run(self.planned_steps.assign(int(steps)))
-
         for agent in self.agents:
             if not agent.is_alive():
                 agent.start()
