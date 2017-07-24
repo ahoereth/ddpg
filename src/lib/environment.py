@@ -13,7 +13,7 @@ class Environment:
     def __init__(self, env_name):
         self.name = env_name
         if env_name == 'Torcs':
-            self.gym = Torcs(throttle=True)
+            self.gym = Torcs()
         else:
             self.gym = gym.make(env_name)
         self.render = getattr(self.gym, 'render', lambda: None)
