@@ -25,17 +25,17 @@ The core of every policy gradient method is to optimize the policy, through chan
 $$ J_1(\theta)  = \mathbb{E_\pi}(R_{t+1}+\gamma R_{t+2}+\gamma^2R_{t+3}+...|S_t) $$ 
 where $\theta$ is the set of parameters of the policy $\pi$. In words, the performance objective is the expected, and by $\gamma$ discounted reward over a trajectory of future states. Taking this into account, our goal can be more clearly defined as finding the gradient of the performance objective with respect to $\theta$. This gradient would allow us to change $\theta$ in order to maximize the performance objective.
 
-A whole trajcetory of states is a sequence of states $s$, actions $a$ and rewards $r$, for example: $\tau = (s_0 , a_0 , r_0 , s_1 , a_1 , r_1 , ... , s_{T-1} , a_{T-1} , r_{T-1} , s_T )$ Then, the gradient with respect to parameters $\theta$ of the expected return of trajcetoy $\tau$ can be expressed as
+A whole trajcetory of states is a sequence of states $s$, actions $a$ and rewards $r$, for example: $\tau = (s_0 , a_0 , r_0 , s_1 , a_1 , r_1 , ... , s_{T-1} , a_{T-1} , r_{T-1} , s_T )$ Then, the gradient with respect to parameters $\theta$ of the expected return of trajectory $\tau$ can be expressed as
 $$ \nabla_{\theta} \mathbb{E}_{\tau} [R(\tau)] = \mathbb{E}_{\tau} [\nabla_{\theta} \log \, p(\tau | \theta) R(\tau)] $$ 
-This expression follows directly from the performance objective (score function) and the definiton of expectation.  We refer to a nice illustatration of this relation in a blog post by Andrej Karpathy[^karpathy] for a stepwise explanation.
+This expression follows directly from the performance objective (score function) and the definiton of expectation.  We refer to a nice illustration of this relation in a blog post by Andrej Karpathy[^karpathy] for a stepwise explanation.
 
 [^karpathy]: [http://karpathy.github.io/2016/05/31/rl/](http://karpathy.github.io/2016/05/31/rl/) 
 
 Under the markov assumption we can detail $p(\tau | \theta)$ into a product of terms corresponding to a timestep within the trajectory each:
 $$ p(\tau | \theta) = \prod_{t=0}^{T-1} \left[ \pi(a_t | s_t , \theta) P(s_{t+1} , r_t | s_t , a_t) \right] $$
-Here, $\pi(a_t | s_t , \theta)$ is the (stochastic) policy, giving a distribution over actions depending on the current state $s_t$ and the parammerter set $\theta$. $P(s_{t+1} , r_t | s_t , a_t)$ is the state transition probability distribution, which is detailing probabilities for each state-state transition pair. 
+Here, $\pi(a_t | s_t , \theta)$ is the (stochastic) policy, giving a distribution over actions depending on the current state $s_t$ and the parameter set $\theta$. $P(s_{t+1} , r_t | s_t , a_t)$ is the state transition probability distribution, which is detailing probabilities for each state-state transition pair. 
 
-As we are aiming to estimate $\nabla_{\theta} \log \, p(\tau | \theta)$, taking $\log \, p(\tau | \theta)$ tansforms the product into a sum. Further, the gradient $\nabla_{\theta}$ is not dependent on $P(s_{t+1} , r_t | s_t , a_t)$. Therefore the policy gradient simplifies to 
+As we are aiming to estimate $\nabla_{\theta} \log \, p(\tau | \theta)$, taking $\log \, p(\tau | \theta)$ transforms the product into a sum. Further, the gradient $\nabla_{\theta}$ is not dependent on $P(s_{t+1} , r_t | s_t , a_t)$. Therefore the policy gradient simplifies to 
 $$ \nabla_{\theta} \mathbb{E}_{\tau}[R] = \mathbb{E}_{\tau}[ R \nabla_{\theta}  \sum_{t=0}^{T-1} [\log \, \pi(a_t | s_t , \theta)] ]$$
 
  When using the state-action value function $Q^{\pi}$ for $R$ the policy gradient is: 
@@ -43,10 +43,10 @@ $$ \nabla_{\theta} \mathbb{E}_{\tau}[R] = \mathbb{E}_{\tau} [ \sum_{t=0}^{T-1} \
 
 @Sutton2000
 
-So far we have introduced the stochastic policy gradient. The deterministic policy gradient was proven to exist more recently by @Silver2014. As mentioned above, the deterministic policy gradient is essential for solving continuous control problems. The deterministic policy gradient is mathematically a special case of the stochastic policy gradient and, in first impression, also looks quite different. A thourough derivation can be found in @Silver2014, which builds upon the beforementioned ideas behind the stochastic policy gradient. Further, we provide some more information on how to apply the deterministic policy gradient in our notebook on Lunar Lander.
+So far we have introduced the stochastic policy gradient. The deterministic policy gradient was proven to exist more recently by @Silver2014. As mentioned above, the deterministic policy gradient is essential for solving continuous control problems. The deterministic policy gradient is mathematically a special case of the stochastic policy gradient and, in first impression, also looks quite different. A thourough derivation can be found in @Silver2014, which builds upon the beforementioned ideas behind the stochastic policy gradient. Further, we provide some more information on how to apply the deterministic policy gradient in our notebook on Lunar Lander.[^lander]
 
 ## Deep Deterministic Policy Gradient
-The deep deterministic policy gradient, as introduced by @Lillicrap2015, adresses the problem of estimating $Q^{\pi}$ by using deep neural networks. As these estimators on their own simply fulfill a role in the reinforcement learning framework, we decribe them in the more application oriented notebook for Lunar Lander [^lander].
+The deep deterministic policy gradient, as introduced by @Lillicrap2015, addresses the problem of estimating $Q^{\pi}$ by using deep neural networks. As these estimators on their own simply fulfill a role in the reinforcement learning framework, we describe them in the more application oriented notebook for Lunar Lander [^lander].
 
 # Implementation
 
