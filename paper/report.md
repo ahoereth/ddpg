@@ -1,5 +1,5 @@
 % Continuous Control with Deep Deterministic Policy Gradients
-% John Berroa, Felix Meyer zu Dreyhausen, Alexander Höreth
+% John Berroa, Felix Meyer zu Driehausen, Alexander Höreth
 % University of Osnabrück
 
 # Introduction
@@ -17,18 +17,43 @@ The following sections will be laid out as follows: first, we will describe in d
 
 
 # Theoretical Basis
+Policy gradient methods are an estabished branch of reinforcement learning techniques that try to optimize a parameterized policy with respect to its long term cumulative reward. Foundational work for the deep determinictic policy algorithm that we are presenting here was laid over the last decades. In the following, we will very briefly present how  policy gradient methods evolved towards DDPG. Therefore we refer to @Sutton2000 for policy gradients in general, @Silver2014 for the deterministic policy gradient, and finally @Lillicrap2015 for deep deterministic policy gradients. 
+
 
 ## Policy Gradient
+The core of every policy gradient method is to optimize the policy, through changing its parameters. In order to optimize, one needs a measurement of the performance of a particular policy. In an episodic environment with a clearly defined start state, the goodness of the policy is the cumulative reward gained when coming from the start state. The performance objective can be written as
+$$ J_1(\theta)  = \mathbb{E_\pi}(R_{t+1}+\gamma R_{t+2}+\gamma^2R_{t+3}+...|S_t) $$ 
+where $\theta$ is the set of parameters of the policy $\pi$. In words, the performance objective is the expected, and by $\gamma$ discounted reward over a trajectory of future states. Taking this into account, our goal can be more clearly defined as finding the gradient of the performance objective with respect to $\theta$. This gradient would allow us to change $\theta$ in order to maximize the performance objective.
 
-## Deterministic Policy Gradient
-Once we have to solved, all we have to do is bring it over into a neural network in order to create the *deep* deterministic policy gradient.
+A whole trajcetory of states is a sequence of states $s$, actions $a$ and rewards $r$, for example: $\tau = (s_0 , a_0 , r_0 , s_1 , a_1 , r_1 , ... , s_{T-1} , a_{T-1} , r_{T-1} , s_T )$ Then, the gradient with respect to parameters $\theta$ of the expected return of trajcetoy $\tau$ can be expressed as
+$$ \nabla_{\theta} \mathbb{E}_{\tau} [R(\tau)] = \mathbb{E}_{\tau} [\nabla_{\theta} \log \, p(\tau | \theta) R(\tau)] $$ 
+This expression follows directly from the performance objective (score function) and the definiton of expectation.  We refer to a nice illustatration of this relation in a blog post by Andrej Karpathy[^karpathy] for a stepwise explanation.
+
+[^karpathy]: [http://karpathy.github.io/2016/05/31/rl/](http://karpathy.github.io/2016/05/31/rl/) 
+
+Under the markov assumption we can detail $p(\tau | \theta)$ into a product of terms corresponding to a timestep within the trajectory each:
+$$ p(\tau | \theta) = \prod_{t=0}^{T-1} \left[ \pi(a_t | s_t , \theta) P(s_{t+1} , r_t | s_t , a_t) \right] $$
+Here, $\pi(a_t | s_t , \theta)$ is the (stochastic) policy, giving a distribution over actions depending on the current state $s_t$ and the parammerter set $\theta$. $P(s_{t+1} , r_t | s_t , a_t)$ is the state transition probability distribution, which is detailing probabilities for each state-state transition pair. 
+
+As we are aiming to estimate $\nabla_{\theta} \log \, p(\tau | \theta)$, taking $\log \, p(\tau | \theta)$ tansforms the product into a sum. Further, the gradient $\nabla_{\theta}$ is not dependent on $P(s_{t+1} , r_t | s_t , a_t)$. Therefore the policy gradient simplifies to 
+$$ \nabla_{\theta} \mathbb{E}_{\tau}[R] = \mathbb{E}_{\tau}[ R \nabla_{\theta}  \sum_{t=0}^{T-1} [\log \, \pi(a_t | s_t , \theta)] ]$$
+
+ When using the state-action value function $Q^{\pi}$ for $R$ the policy gradient is: 
+$$ \nabla_{\theta} \mathbb{E}_{\tau}[R] = \mathbb{E}_{\tau} [ \sum_{t=0}^{T-1} \nabla_{\theta} \log \, \pi(a_t | s_t , \theta) Q^{\pi}(s_t,a_t) ]$$
+
+@Sutton2000
+
+So far we have introduced the stochastic policy gradient. The deterministic policy gradient was proven to exist more recently by @Silver2014. As mentioned above, the deterministic policy gradient is essential for solving continuous control problems. The deterministic policy gradient is mathematically a special case of the stochastic policy gradient and, in first impression, also looks quite different. A thourough derivation can be found in @Silver2014, which builds upon the beforementioned ideas behind the stochastic policy gradient. Further, we provide some more information on how to apply the deterministic policy gradient in our notebook on Lunar Lander.
+
+## Deep Deterministic Policy Gradient
+The deep deterministic policy gradient, as introduced by @Lillicrap2015, adresses the problem of estimating $Q^{\pi}$ by using deep neural networks. As these estimators on their own simply fulfill a role in the reinforcement learning framework, we decribe them in the more application oriented notebook for Lunar Lander [^lander].
 
 # Implementation
 
 ## Tutorial
 Because of the complexity of the employed neural network (which is basically four networks), we provide an extensively documented and interactive tutorial. The tutorial guides the user through a complete implementation of the DDPG algorithm applied to the Lunar Lander (see figure ##) environment from the OpenAI Gym [@Brockman2016].[^lander]
 
-Additionally, targeted for those new to reinforcement learning in general, we provide a notebook all around tabular Q-learning solving the classical Frozen Lake game. In frozen lake one has to control an agent over a small map from start to goal. The challenge is, that the environment is non deterministic: At each step there is a $33%$ chance of slipping and moving orthogonally to the originally executed action.
+Additionally, targeted for those new to reinforcement learning in general, we provide a notebook all around tabular Q-learning solving the classical Frozen Lake game. In frozen lake one has to control an agent over a small map from start to goal. The challenge is, that the environment is non deterministic: At each step there is a 33% chance of slipping and moving orthogonally to the originally executed action.
 
 The notebook implements three algorithms: Q-Learning as taught in the Institute of Cognitive Science's Machine Learning lecture on the deterministic game (meaning there is no slippery ice because the algorithm is unable to solve it otherwise), Q-Learning itself and the classical, non-greedy SARSA algorithm.
 
@@ -63,4 +88,10 @@ The difference between Q-Learning and SARSA in short is that Q-Learning greedily
 
 # Conclusion
 As mentioned in the introduction, continuous action reinforcement learning allows us to do so much more in the real world with the theories behind learning from reward.  The DDPG paper was huge when it came out, and most reinforcement learning papers these days reference it or some derviative work in some way.
+
+## References {.allowframebreaks}
+
+\footnotesize
+
+
 
