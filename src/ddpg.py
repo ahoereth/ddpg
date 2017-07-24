@@ -69,15 +69,17 @@ class DDPG(Model):
         # inputs and, together with the noise, provides the current action
         make_noise = partial(self.make_noise, mu=self.mu, theta=self.theta,
                              sigma=self.sigma)
-        make_actor = partial(self.make_actor, dout=actions.shape.as_list()[1:],
+        action_shape = actions.shape.as_list()[1:]
+        make_actor = partial(self.make_actor, dout=action_shape,
                              bounds=action_bounds)
+        print(action_shape)
         with tf.variable_scope('actor'):
             actor = make_actor(states)
             actor_short = make_actor(act_states, reuse=True)
             actor_ = make_actor(states_, name='target')
-            epsilon = tf.maximum(0, (1. - step * (1. / tf.to_float(steps))))
+            epsilon = tf.maximum(0., (1. - step * (1. / tf.to_float(steps))))
             noise = epsilon * tf.cond(training,
-                                      lambda: make_noise(actshape),
+                                      lambda: make_noise(action_shape),
                                       lambda: tf.constant(0.))
             action = actor_short.y + epsilon * noise
             action = tf.clip_by_value(action, *action_bounds)  # after noise
