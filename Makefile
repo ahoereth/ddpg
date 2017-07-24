@@ -1,7 +1,7 @@
 HOST?=ddpg
 SIZE?=64
 
-%.pdf:
+%slides.pdf:
 	cd slides && \
 	pandoc \
 		-t beamer \
@@ -17,6 +17,20 @@ SIZE?=64
 
 
 slides: slides/slides.pdf
+
+%report.pdf:
+	cd paper && \
+	pandoc \
+		--latex-engine pdflatex \
+		--bibliography library.bib \
+		--filter pandoc-citeproc \
+		--highlight-style tango \
+		-o report.pdf \
+		*.md
+
+report: paper/report.pdf
+
+
 
 provision:
 	docker-machine create ${HOST} \
