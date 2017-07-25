@@ -85,6 +85,8 @@ class DDPG(Model):
             noise = epsilon * tf.cond(training,
                                       lambda: make_noise(action_shape),
                                       lambda: tf.constant(0.))
+            tf.summary.scalar('misc/epsilon', epsilon)
+            tf.summary.histogram('misc/noise', noise)
             action = actor_short.y + epsilon * noise
             action = tf.clip_by_value(action, *action_bounds)  # after noise
         tf.contrib.layers.summarize_tensors(actor.vars)
