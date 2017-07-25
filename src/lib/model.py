@@ -156,7 +156,7 @@ class Model:
     @property
     def episodes(self):
         """Environment episodes simulated."""
-        return sum([agent.episodes for agent in self.agents])
+        return sum([agent.episodes for agent in self.agents] + [0])
 
     @property
     def steps(self):
@@ -165,8 +165,10 @@ class Model:
 
     @property
     def rewards(self):
-        return np.array([agent.rewards for agent in self.agents]).flatten()
+        rewards = np.array([agent.rewards for agent in self.agents]).flatten()
+        return rewards if len(rewards) else np.array([0])
 
     @property
     def rewards_ema(self):
-        return np.array([agent.rewards_ema for agent in self.agents]).mean()
+        rewards = np.array([agent.rewards_ema for agent in self.agents])
+        return (rewards if len(rewards) else np.array([0])).mean()
