@@ -34,6 +34,8 @@ class DDPG(Model):
         mu=0.,
         theta=.15,
         sigma=.2,
+        h1=100,
+        h2=50,
         config_name='',
         **kwargs
     ):
@@ -49,6 +51,8 @@ class DDPG(Model):
         self.mu = mu
         self.theta = theta
         self.sigma = sigma
+        self.h1 = h1
+        self.h2 = h2
         config_name = to_logpath(
             config_name,
             weightDecay=weight_decay, biasDecay=bias_decay,
@@ -118,10 +122,14 @@ class DDPG(Model):
 
     def dense(self, name, x, units, activation=None, decay=None, minmax=None):
         """Build a dense layer with uniform init and optional weight decay."""
-        if minmax is None:
-            fan_in = x.shape[1].value
-            minmax = 1 / np.sqrt(float(fan_in))
-        initializer = tf.random_uniform_initializer(-minmax, minmax)
+        initializer = False
+        if minmax is not None:
+            # initializer = tf.random_uniform_initializer(-minmax, minmax)
+            initializer = tf.random_normal_initializer(0, minmax)
+        # else:
+        #     fan_in = x.shape[1].value
+        #     minmax = 1 / np.sqrt(float(fan_in))
+        #     initializer = tf.random_uniform_initializer(-minmax, minmax)
 
         regularizer = None
         if decay is not None:
@@ -131,8 +139,8 @@ class DDPG(Model):
             x, units,
             name=name,
             activation=activation,
-            kernel_initializer=initializer,
-            bias_initializer=initializer,
+            kernel_initializer=initializer or None,
+            bias_initializer=initializer or tf.zeros_initializer(),
             kernel_regularizer=regularizer if self.weight_decay else None,
             bias_regularizer=regularizer if self.bias_decay else None,
         )
@@ -145,13 +153,13 @@ class DDPG(Model):
             if self.critic_batch_normalization:
                 net = tf.layers.batch_normalization(net, training=is_batch,
                                                     epsilon=1e-7, momentum=.95)
-            net = self.dense('0', net, 100, tf.nn.relu, decay=True)
+            net = self.dense('0', net, self.h1, tf.nn.relu, decay=True)
             if self.critic_batch_normalization:
                 net = tf.layers.batch_normalization(net, training=is_batch,
                                                     epsilon=1e-7, momentum=.95)
             net = tf.concat([net, actions], axis=1)  # Actions enter the net
-            net = self.dense('1', net, 50, tf.nn.relu, decay=True)
-            y = self.dense('2_q', net, 1, decay=True, minmax=3e-3)
+            net = self.dense('1', net, self.h2, tf.nn.relu, decay=True)
+            y = self.dense('2_q', net, 1, decay=True, minmax=1e-4)  # 3e-3)
             ops = scope.get_collection(tf.GraphKeys.UPDATE_OPS)
             losses = scope.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
             return Network(tf.squeeze(y), get_variables(scope), ops, losses)
@@ -165,15 +173,15 @@ class DDPG(Model):
             if self.actor_batch_normalization:
                 net = tf.layers.batch_normalization(net, training=is_batch,
                                                     epsilon=1e-7, momentum=.95)
-            net = self.dense('0', net, 100, tf.nn.relu)
+            net = self.dense('0', net, self.h1, tf.nn.relu)
             if self.actor_batch_normalization:
                 net = tf.layers.batch_normalization(net, training=is_batch,
                                                     epsilon=1e-7, momentum=.95)
-            net = self.dense('1', net, 50, tf.nn.relu)
+            net = self.dense('1', net, self.h2, tf.nn.relu)
             if self.actor_batch_normalization:
                 net = tf.layers.batch_normalization(net, training=is_batch,
                                                     epsilon=1e-7, momentum=.95)
-            y = self.dense('2', net, dout, tf.nn.tanh, minmax=3e-3)
+            y = self.dense('2', net, dout, tf.nn.tanh, minmax=1e-4)  # 3e-3)
             scaled = self.scale(y, bounds_in=(-1, 1), bounds_out=bounds)
             ops = scope.get_collection(tf.GraphKeys.UPDATE_OPS)
             losses = scope.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
@@ -240,6 +248,7 @@ class DDPG(Model):
         """Ornstein-Uhlenbeck noise process.
 
         Mu, theta and sigma can either be of size n or floats.
+        https://en.wikipedia.org/wiki/Ornstein%E2%80%93Uhlenbeck_process
         """
         shape = to_tuple(n)
         with tf.variable_scope('OUNoise'):
