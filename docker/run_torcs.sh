@@ -14,6 +14,12 @@ xte 'usleep 100000'
 xte 'key Return'
 xte 'usleep 100000'
 xte 'key Return'
+xte 'usleep 100000'
+xte 'key F2'  # Change view
+xte 'key F2'
+xte 'key F2'
+xte 'usleep 100000'
+xte "keydown Alt_L" "key F11" "keyup Alt_L" # Full screen
   # sleep 60
   # pkill torcs
 # done
