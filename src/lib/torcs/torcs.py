@@ -19,12 +19,14 @@ FILEDIR = os.path.dirname(os.path.realpath(__file__))
 
 class Torcs:
     # Speed limit is applied after this step
-    terminal_judge_start = 20
+    terminal_judge_start = 50
 
     # [km/h], episode terminates if car is running slower than this limit
     termination_limit_progress = 1
 
     initial_reset = True
+
+    punishment = -1
 
     def __init__(self):
         self.initial_run = True
@@ -56,12 +58,13 @@ class Torcs:
         # Apply Action
         action_torcs = client.R.d
         action_torcs['steer'] = np.clip(action[0], -1, 1)
+        throttle = np.clip(np.abs(action[1]), 0, 1)
         if action[1] > 0:
-            action_torcs['accel'] = np.clip(action[1], 0, 1)
+            action_torcs['accel'] = throttle
             action_torcs['brake'] = 0
         else:
             action_torcs['accel'] = 0
-            action_torcs['brake'] = np.clip(np.abs(action[1]), 0, 1)
+            action_torcs['brake'] = throttle
 
         # Automatic gear shifting
         action_torcs['gear'] = 1
@@ -91,29 +94,33 @@ class Torcs:
         # Compute reward.
         # TODO: Make plugable
         speed = np.array(obs['speedX'])
-        reward = (speed * np.cos(obs['angle']) -
-                  np.abs(speed * np.sin(obs['angle'])) -
-                  speed * np.abs(obs['trackPos']))
-        reward = 1 / (1 + math.exp(-reward))
-        progress = speed * np.cos(obs['angle'])
+        progress = speed * np.cos(obs['angle'])  # forward progress
+        # reward = progress
+        #  -  # off-track
+        reward = speed * (np.cos(obs['angle']) -  # prefer straight
+                          np.abs(np.sin(obs['angle'])) -  # discount steering
+                          np.abs(obs['trackPos']))  # discount off-center
 
         # Collision detection.
         if obs['damage'] - obs_pre['damage'] > 0:
-            reward = -1
+            reward = self.punishment
+            print('terminated due to damage taken')
+            episode_terminate = True
+            client.R.d['meta'] = True
 
         # Termination judgement
         episode_terminate = False
 
-        print(progress)
-
         # Episode is terminated if the car is out of track
         if np.min(obs['track']) < 0:
             print('terminated due to out of track')
+            reward = self.punishment
             episode_terminate = True
             client.R.d['meta'] = True
 
         # Episode terminates if the progress of agent is small
         if self.terminal_judge_start < self.time_step and progress < 1:
+            reward = -1
             episode_terminate = True
             client.R.d['meta'] = True
         # if self.terminal_judge_start < self.time_step and speed < 10:
@@ -132,8 +139,8 @@ class Torcs:
             self.initial_run = False
             client.respond_to_server()
 
-        if episode_terminate:
-            reward = -1
+        # if episode_terminate:
+        #     reward = -1
 
         self.time_step += 1
         return self.observation, reward, client.R.d['meta'], {}
