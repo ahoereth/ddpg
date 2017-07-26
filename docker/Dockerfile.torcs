@@ -30,11 +30,18 @@ RUN apt-get update -y -qq \
     git \
     gdb
 
+# https://github.com/ugo-nama-kun/gym_torcs/issues/7
 RUN git clone https://github.com/ugo-nama-kun/gym_torcs.git gym_torcs \
  && cd gym_torcs/vtorcs-RL-color \
  && cp exp-settings/config/sound.xml src/modules/graphic/ssggraph/sound.xml \
  && sed -re s/attnum\ name="x"\ val="640"/attnum\ name="x"\ val="${DISPLAY_WIDTH}"/ -i src/libs/tgfclient/screen.xml \
  && sed -re s/attnum\ name="y"\ val="480"/attnum\ name="y"\ val="${DISPLAY_HEIGHT}"/ -i src/libs/tgfclient/screen.xml \
+ && sed -re "s/\/\/(if \(debugFlag\))/\1/" -i src/modules/graphic/ssggraph/grboard.cpp \
+ && sed -re "s/\/\/(if \(boardFlag\))/\1/" -i src/modules/graphic/ssggraph/grboard.cpp \
+ && sed -re "s/\/\/(if \(leaderFlag\))/\1/" -i src/modules/graphic/ssggraph/grboard.cpp \
+ && sed -re "s/\/\/(if \(counterFlag\))/\1/" -i src/modules/graphic/ssggraph/grboard.cpp \
+ && sed -re "s/\/\/(trackMap->display)/\1/" -i src/modules/graphic/ssggraph/grboard.cpp \
+ && sed -re "0,/for \(i = 1;/s//for (i = 0;/" -i src/modules/graphic/ssggraph/grscreen.cpp \
  && ./configure \
  && make \
  && make install \
