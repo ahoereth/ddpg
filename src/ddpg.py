@@ -254,7 +254,8 @@ class DDPG(Model):
         """
         shape = to_tuple(n)
         with tf.variable_scope('OUNoise'):
-            state = tf.Variable(tf.ones(shape) * mu)
+            state = tf.get_variable('state', shape,
+                                    initializer=tf.constant_initializer(mu))
             noise = theta * (mu - state) + sigma * tf.random_normal(shape)
             # reset = state.assign(tf.zeros((n,)))
             return state.assign_add(noise)

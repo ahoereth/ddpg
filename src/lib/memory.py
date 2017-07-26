@@ -27,7 +27,7 @@ class Memory:
         return self._size
 
     def set_terminal(self, index, terminal):
-        index = index % (self.head + 1)
+        index = index % (self._head + 1)
         self._terminals[index] = terminal
 
     def __getitem__(self, indices):
