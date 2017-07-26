@@ -1,28 +1,14 @@
 # Continuous Control with Deep Reinforcement Learning
 
+## Requirements
+The codebase itself uses Python 3.5+ with Tensorflow 1.2 and numpy. For the reinforcement learning environments the [OpenAI Gym](https://gym.openai.com/) and a [modified](src/lib/torcs) [version](docker/Dockerfile.torcs) of [gym_torcs](https://github.com/ugo-nama-kun/gym_torcs) is used.
+
 ## Usage
-To start the environment using docker simply run the following command:
+In order to not need to globally install torcs (and to use an optimized build of Tensorflow) this repository uses [docker/moby](https://github.com/moby/moby) and [docker-compose](https://github.com/docker/compose). When the two are installed one just needs to run the following command to start the torcs training:
 
-    docker-compose up notebook tensorboard
-
-It will print the required authentication key for the notebook running on `localhost:8888` during the end of the startup process. Tensorboard will be available through `localhost:6006`.
-
-Alternatively one can run the following on an AWS GPU instance for using GPU accelerated TensorFlow.
-
-    docker-compose up notebook-aws tensorboard
-
-The fastest way to get an instance up is using a prepared AMI (an AWS EC2 image) with the following command (adjust to your needs):
-
-    docker-machine create letsplay \
-        --driver amazonec2 \
-        --amazonec2-region eu-west-1 \
-        --amazonec2-zone b \
-        --amazonec2-instance-type p2.xlarge \
-        --amazonec2-request-spot-instance \
-        --amazonec2-spot-price 0.4 \
-        --amazonec2-root-size 32 \
-        --amazonec2-ami ami-71e4d817
+```bash
+docker-compose up
+```
 
 ### Without docker
-
-    pip install -r requirements.txt
+If you want to run torcs, use docker. For playing around with other Gym environments you can install the requirements using `pip install -r requirements.txt` and use `run.py` -- checkout the source, should be self explanatory.
