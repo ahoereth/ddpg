@@ -47,8 +47,8 @@ class Environment:
         self.observation = None
         self.episode_reward = 0
 
-    def reset(self):
-        if self.terminated is True:
+    def reset(self, hard=False):
+        if self.terminated is True or hard:
             self.terminated = False
             self.episode_reward = 0
             self.observation = self.preprocess(self.gym.reset())

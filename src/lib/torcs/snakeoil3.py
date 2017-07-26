@@ -146,50 +146,34 @@ class Client():
     def setup_connection(self):
         # == Set Up UDP Socket ==
         try:
-            self.so= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.so = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         except socket.error as emsg:
             print('Error: Could not create socket...')
             sys.exit(-1)
         # == Initialize Connection To Server ==
         self.so.settimeout(1)
 
-        n_fail = 5
+        print('Connecting to torcs server on {}. .'.format(self.port), end=' ')
         while True:
             # This string establishes track sensor angles! You can customize them.
-            #a= "-90 -75 -60 -45 -30 -20 -15 -10 -5 0 5 10 15 20 30 45 60 75 90"
+            a = "-90 -75 -60 -45 -30 -20 -15 -10 -5 0 5 10 15 20 30 45 60 75 90"
             # xed- Going to try something a bit more aggressive...
-            a= "-45 -19 -12 -7 -4 -2.5 -1.7 -1 -.5 0 .5 1 1.7 2.5 4 7 12 19 45"
-
+            # a = "-45 -19 -12 -7 -4 -2.5 -1.7 -1 -.5 0 .5 1 1.7 2.5 4 7 12 19 45"
             initmsg='%s(init %s)' % (self.sid,a)
-
             try:
                 self.so.sendto(initmsg.encode(), (self.host, self.port))
             except socket.error as emsg:
                 sys.exit(-1)
-            sockdata= str()
+            sockdata = str()
             try:
-                sockdata,addr= self.so.recvfrom(data_size)
+                sockdata, addr = self.so.recvfrom(data_size)
                 sockdata = sockdata.decode('utf-8')
             except socket.error as emsg:
-                print("Waiting for server on %d............" % self.port)
-                print("Count Down : " + str(n_fail))
-                if n_fail < 0:
-                #     print("relaunch torcs")
-                #     os.system('pkill torcs')
-                    time.sleep(1.0)
-                #     if self.vision is False:
-                #         os.system('torcs -nofuel -nodamage -nolaptime &')
-                #     else:
-                #         os.system('torcs -nofuel -nodamage -nolaptime -vision &')
-
-                #     time.sleep(1.0)
-                #     os.system('sh {}/autostart.sh'.format(FILEDIR))
-                #     n_fail = 5
-                n_fail -= 1
+                print('.', end=' ')
 
             identify = '***identified***'
             if identify in sockdata:
-                print("Client connected on %d.............." % self.port)
+                print('Connected')
                 break
 
     def parse_the_command_line(self):
@@ -235,17 +219,19 @@ class Client():
 
     def get_servers_input(self):
         '''Server's input is stored in a ServerState object'''
-        if not self.so: return
+        if not self.so:
+            raise ConnectionError('Error receiving from server: No socket.')
+
         sockdata= str()
 
-        while True:
+        success = False
+        for _ in range(10):
             try:
                 # Receive server data
-                sockdata,addr= self.so.recvfrom(data_size)
+                sockdata, addr = self.so.recvfrom(data_size)
                 sockdata = sockdata.decode('utf-8')
             except socket.error as emsg:
-                print('.', end=' ')
-                #print "Waiting for data on %d.............." % self.port
+                pass
             if '***identified***' in sockdata:
                 print("Client connected on %d.............." % self.port)
                 continue
@@ -268,41 +254,46 @@ class Client():
                 if self.debug:
                     sys.stderr.write("\x1b[2J\x1b[H") # Clear for steady output.
                     print(self.S)
+                success = True
                 break # Can now return from this function.
+        if not success:
+            raise ConnectionError('Error receiving from server: No data.')
 
     def respond_to_server(self):
-        if not self.so: return
+        if not self.so:
+            raise ConnectionError('Error responding to server: No socket.')
+
         try:
             message = repr(self.R)
             self.so.sendto(message.encode(), (self.host, self.port))
         except socket.error as emsg:
-            print("Error sending to server: %s Message %s" % (emsg[1],str(emsg[0])))
+            raise ConnectionError('Error responding to server: {} Message {}'
+                                  .format(emsg[1], str(emsg[0])))
             sys.exit(-1)
-        if self.debug: print(self.R.fancyout())
-        # Or use this for plain output:
-        #if self.debug: print self.R
+        if self.debug:
+            print(self.R.fancyout())
 
     def shutdown(self):
-        if not self.so: return
-        print(("Race terminated or %d steps elapsed. Shutting down %d."
-               % (self.maxSteps,self.port)))
+        if not self.so:
+            return
+        print('Race terminated or {} steps elapsed. Shutting down {}.'
+              .format(self.maxSteps, self.port))
         self.so.close()
         self.so = None
-        #sys.exit() # No need for this really.
 
 class ServerState():
-    '''What the server is reporting right now.'''
+    """What the server is reporting right now."""
     def __init__(self):
         self.servstr= str()
         self.d= dict()
 
     def parse_server_str(self, server_string):
-        '''Parse the server string.'''
-        self.servstr= server_string.strip()[:-1]
-        sslisted= self.servstr.strip().lstrip('(').rstrip(')').split(')(')
+        """Parse the server string."""
+        self.servstr = server_string.strip()[:-1]
+        sslisted = self.servstr.strip().lstrip('(').rstrip(')').split(')(')
         for i in sslisted:
-            w= i.split(' ')
-            self.d[w[0]]= destringify(w[1:])
+            w = i.split(' ')
+            self.d[w[0]] = destringify(w[1:])
 
     def __repr__(self):
         # Comment the next line for raw output:

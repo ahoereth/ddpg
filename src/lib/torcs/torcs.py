@@ -24,11 +24,10 @@ class Torcs:
     # [km/h], episode terminates if car is running slower than this limit
     termination_limit_progress = 1
 
-    initial_reset = True
-
     punishment = -1
 
     def __init__(self):
+        self.initial_reset = True
         self.initial_run = True
         self.client = None
 
@@ -82,8 +81,12 @@ class Torcs:
         # Save the previous full-obs from torcs for the reward calculation
         obs_pre = copy.deepcopy(client.S.d)
 
-        client.respond_to_server()  # Apply the Agent's action into torcs
-        client.get_servers_input()  # Get the response of TORCS
+        try:
+            client.respond_to_server()  # Apply the Agent's action into torcs
+            client.get_servers_input()  # Get the response of TORCS
+        except ConnectionError:
+            self.initial_reset = True
+            raise EnvironmentError('Torcs server went away.')
 
         # Get the current full-observation from torcs
         obs = client.S.d
@@ -137,7 +140,11 @@ class Torcs:
         # Send a reset signal
         if client.R.d['meta'] is True:
             self.initial_run = False
-            client.respond_to_server()
+            try:
+                client.respond_to_server()
+            except ConnectionError:
+                self.initial_reset = True
+                raise EnvironmentError('Torcs server went away.')
 
         # if episode_terminate:
         #     reward = -1
@@ -145,19 +152,27 @@ class Torcs:
         self.time_step += 1
         return self.observation, reward, client.R.d['meta'], {}
 
-    def reset(self, relaunch=False):
+    def reset(self):
         self.time_step = 0
 
         if self.initial_reset is not True:
             self.client.R.d['meta'] = True
-            self.client.respond_to_server()
+            try:
+                self.client.respond_to_server()
+            except ConnectionError:
+                self.initial_reset = True
+                return self.reset()
 
         # Modify here if you use multiple tracks in the environment
         # Open new UDP in vtorcs
         self.client = snakeoil3(H=HOST, p=PORT, vision=False)
         self.client.MAX_STEPS = np.inf
 
-        self.client.get_servers_input()  # Get the initial input from torcs
+        try:
+            self.client.get_servers_input()  # Get the initial input from torcs
+        except ConnectionError:
+            self.initial_reset = True
+            return self.reset()
         obs = self.client.S.d  # Get the current full-observation from torcs
         self.observation = self.make_observation(obs)
         self.last_u = None
@@ -179,3 +194,11 @@ class Torcs:
                    ('rpm', 10000)]
         data = [np.array(obs[sensor]) / div for sensor, div in sensors]
         return np.hstack(data)
+
+    def render(self, close=False):
+        """Not implemented. Always renders."""
+        ...
+
+    def close(self):
+        """Shutdown connection to torcs server."""
+        self.client.shutdown()
