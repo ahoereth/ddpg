@@ -14,7 +14,7 @@ RUN apt-get install -y -qq -t trusty-backports swig3.0 \
  && ln -s /usr/bin/swig3.0 /usr/bin/swig
 
 # Gym
-RUN pip3 install -U pip setuptools gym[all]
+RUN pip install -U pip setuptools gym[all]
 
 # Manually build Box2D
 # RUN mkdir -p /tmp \
