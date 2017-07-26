@@ -16,7 +16,7 @@ class Environment:
             self.gym = Torcs()
         else:
             self.gym = gym.make(env_name)
-        self.render = getattr(self.gym, 'render', lambda: None)
+        self.render = getattr(self.gym, 'render', lambda close: None)
         self.close = getattr(self.gym, 'close', lambda: None)
 
         # Determine the environments observation properties.

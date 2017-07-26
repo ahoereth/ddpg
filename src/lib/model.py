@@ -87,7 +87,7 @@ class Model:
 
     @classmethod
     def make_network(cls, action_states, states, actions, rewards, terminals,
-                     states_, steps):
+                     states_, exploration_steps):
         """Create the RL network. To be implemented by subclasses."""
         raise NotImplementedError
 
