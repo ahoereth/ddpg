@@ -1,6 +1,6 @@
 version: '3'
 services:
-  xdummy:
+  xdummy:  # Some gym environments require a x server for rendering.
     build:
       context: docker
       dockerfile: Dockerfile.Xdummy
@@ -20,6 +20,8 @@ services:
       - 3101:3101  # torcs
       - 5901:5901  # vnc
       - 6901:6901  # web vnc
+    # Always restart container when it exited. Important because container
+    # kills itself from time to time on purpose!
     restart: always
     environment:
       VNC_PW: tftorcs

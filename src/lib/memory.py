@@ -26,6 +26,10 @@ class Memory:
     def __len__(self):
         return self._size
 
+    def set_terminal(self, index, terminal):
+        index = index % (self.head + 1)
+        self._terminals[index] = terminal
+
     def __getitem__(self, indices):
         """Get a list of (s, a, r, t) tuples.
 

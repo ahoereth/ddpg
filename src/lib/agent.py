@@ -31,8 +31,10 @@ class Agent(Thread):
 
     def simulate(self, demo=False):
         """Interact with the environment forever."""
+        healthy = True
         for self.episodes in count(self.episodes):
-            self.observation = self.env.reset()
+            self.observation = self.env.reset(hard=not healthy)
+            healthy = True
             while not self.env.terminated:
                 # Wait until this agent is allowed to move on.
                 if not demo and self.pretrain_steps < 0:
@@ -43,8 +45,16 @@ class Agent(Thread):
                 # Perform a step in the environment.
                 state = self.memory.now(self.observation)
                 action = self.get_action(state, training=not demo)
-                next_observation, reward, terminal = self.env.step(action)
-
+                try:
+                    next_observation, reward, terminal = self.env.step(action)
+                except EnvironmentError:  # literally
+                    # The environment went away, so we do not want to store
+                    # the current experience. Important: The previous
+                    # observation therefore is apparently a terminal state and
+                    # needs to be updated.
+                    self.memory.set_terminal(-1, True)
+                    healthy = False
+                    break
                 # Store the experience in the memory.
                 self.memory.add(self.observation, action, reward, terminal)
                 self.observation = next_observation
@@ -54,9 +64,10 @@ class Agent(Thread):
                 if demo:
                     self.env.render(close=terminal)
 
-            self.rewards.append(self.env.episode_reward)
-            self.rewards_ema -= 1e-3 * (self.rewards_ema -
-                                        self.env.episode_reward)
+            if healthy:
+                self.rewards.append(self.env.episode_reward)
+                self.rewards_ema -= 1e-3 * (self.rewards_ema -
+                                            self.env.episode_reward)
             # Stop simulation after one episode when demoing.
             if demo:
                 break
