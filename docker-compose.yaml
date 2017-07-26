@@ -29,7 +29,7 @@ services:
   tensorflow:
     build:
       context: docker
-      dockerfile: Dockerfile # .tf
+      dockerfile: Dockerfile
     container_name: tensorflow
     depends_on:
       - xdummy

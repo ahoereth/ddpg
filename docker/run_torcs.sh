@@ -17,8 +17,8 @@ xte 'usleep 100000'
 xte 'key Return'
 
 # Change to close first person view
-# xte 'usleep 100000'
-# xte 'key F2'
+xte 'usleep 100000'
+xte 'key F2'
 # xte 'key F2'
 # xte 'key F2'
 
