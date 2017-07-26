@@ -82,9 +82,9 @@ class DDPG(Model):
             actor_ = make_actor(states_, name='target')
             epsilon = tf.maximum(0., (1. - step *
                                       (1. / tf.to_float(exploration_steps))))
-            noise = epsilon * tf.cond(training,
-                                      lambda: make_noise(action_shape),
-                                      lambda: tf.constant(0.))
+            noise = tf.cond(training,
+                            lambda: make_noise(action_shape),
+                            lambda: tf.constant(0.))
             tf.summary.scalar('misc/epsilon', epsilon)
             tf.summary.histogram('misc/noise', noise)
             action = actor_short.y + epsilon * noise
