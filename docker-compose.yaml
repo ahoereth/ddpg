@@ -39,7 +39,7 @@ services:
       DISPLAY: :1
       TORCS_HOST: torcs
       TORCS_PORT: 3101
-    command: python3 ${TARGET:-run.py}  # tail -f /dev/null
+    command: ${CMD:-python3 torcs.py}  # tail -f /dev/null
     working_dir: /wd
     ports:
       - 8888:8888
