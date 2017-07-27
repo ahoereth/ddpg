@@ -30,6 +30,9 @@ docs/report/report.pdf: docs/report/report.md
 report: docs/report/report.pdf
 
 
+submission: docs/submission.md
+	pandoc -o submission.pdf docs/submission.md
+
 
 provision:
 	docker-machine create ${HOST} \
