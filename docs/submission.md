@@ -2,7 +2,7 @@
 title: Continuous Control with Deep Deterministic Policy Gradients
 author: John Berroa, Felix Meyer zu Driehausen, Alexander Höreth
 date: University of Osnabrück, July 27, 2017
-geometry: left=4cm,right=4cm,top=1.5cm,bottom=2cm
+geometry: left=3cm,right=3cm,top=1cm,bottom=2cm
 ---
 
 Our project can be found on GitHub. In order to ensure that no work after the deadline influences our grade one can refer to the signed commit [694df98](https://github.com/ahoereth/ddpg/tree/694df9). Besides that we recommend refering to the master branch because we might work on it some more after the deadline:
