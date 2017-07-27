@@ -1,5 +1,3 @@
-import time
-
 import tensorflow as tf
 
 from src import DDPG
@@ -7,9 +5,7 @@ from src import DDPG
 
 ENV_NAME = 'Torcs'
 CHECKPOINT = None
-# CHECKPOINT = 'runs/170725-1720/weightDecay-291000'
-
-start = time.time()
+# CHECKPOINT = 'runs/170725-1720/291000'
 
 model = DDPG(
     ENV_NAME, checkpoint=CHECKPOINT,
@@ -27,14 +23,13 @@ model = DDPG(
     h2=600,
     critic_learning_rate=1e-3,
     actor_learning_rate=1e-4,
-    tau=2e-3,  # 1e-3
+    tau=5e-3,  # 1e-3
     mu=[0., .5],  # steering, acceleration
     theta=[.8, 1.],  # steering, acceleration
     sigma=[.3, .1],  # steering, acceleration
     exploration_steps=10000,
     config_name=''
 )
-model.train(1000000)
-# model.demo()
 
-print(time.time() - start)
+model.train(1)  # steps to train for
+model.demo()

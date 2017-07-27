@@ -1,5 +1,3 @@
-import time
-
 import tensorflow as tf
 
 from src import DDPG
@@ -7,11 +5,6 @@ from src import DDPG
 
 ENV_NAME = 'LunarLanderContinuous-v2'
 CHECKPOINT = None
-# CHECKPOINT = 'logs/170714-1406-107000'
-# CHECKPOINT = tf.train.latest_checkpoint('logs')  # not working
-
-
-start = time.time()
 
 model = DDPG(
     ENV_NAME, checkpoint=CHECKPOINT,
@@ -30,5 +23,3 @@ model = DDPG(
 )
 model.train(1000000)
 # model.demo()
-
-print(time.time() - start)
