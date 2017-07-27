@@ -14,7 +14,7 @@ docker-compose up
 
 This will start a total of 4 containers exposing multiple services on different ports. The ones of particular interest:
 
-- Watch torcs in your browser: `localhost:6901`
+- Watch torcs in your browser: `localhost:6901` -- password: `tftorcs`. You can change the view with `F2`.
 - Checkout live stats on tensorboard: `localhost:6006`
 - Start the containers using `CMD='jupyter notebook --allow-root' docker-compose up` and access the notebook on `localhost:8888`
 
