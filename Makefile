@@ -1,8 +1,8 @@
 HOST?=ddpg
 SIZE?=64
 
-%slides.pdf:
-	cd slides && \
+docs/slides/slides.pdf: docs/slides/slides.md
+	cd docs/slides && \
 	pandoc \
 		-t beamer \
 		--latex-engine pdflatex \
@@ -15,11 +15,10 @@ SIZE?=64
 
 # --listings
 
+slides: docs/slides/slides.pdf
 
-slides: slides/slides.pdf
-
-%report.pdf:
-	cd paper && \
+docs/report/report.pdf: docs/report/report.md
+	cd docs/report && \
 	pandoc \
 		--latex-engine pdflatex \
 		--bibliography library.bib \
@@ -28,7 +27,7 @@ slides: slides/slides.pdf
 		-o report.pdf \
 		*.md
 
-report: paper/report.pdf
+report: docs/report/report.pdf
 
 
 
