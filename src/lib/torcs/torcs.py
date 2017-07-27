@@ -19,7 +19,7 @@ FILEDIR = os.path.dirname(os.path.realpath(__file__))
 
 class Torcs:
     # Speed limit is applied after this step
-    terminal_judge_start = 200
+    terminal_judge_start = 50
 
     # [km/h], episode terminates if car is running slower than this limit
     termination_limit_progress = 1
@@ -98,9 +98,7 @@ class Torcs:
         progress = speed * np.cos(obs['angle'])  # forward progress
         reward = speed * (np.cos(obs['angle']) -  # encourage forward
                           np.abs(np.sin(obs['angle'])) -  # discourage sideways
-                          np.abs(obs['trackPos']) / 2)  # discourage off-center
-        # reward /= 200  # aim for a speed of 200km/h, normalize rewards
-        # reward = np.tanh(reward)  # normalize from -1 to 1
+                          np.abs(obs['trackPos']))  # discourage off-center
 
         # Collision detection.
         if obs['damage'] - obs_pre['damage'] > 0:
