@@ -71,7 +71,7 @@ The actual implementation we applied to torcs is more sophisticated than the one
 
 A user implementing an algorithm like DDPG[^ddpg] only needs to create a single class inheriting from `model`[^modelclass] and stick to the interface put forward by it. Another implementation of this concept for the DQN algorithm is planned, but not yet completed.
 
-Behind the scences the model class will take care of threaded experience generation with multiple agents and multithreaded feeding of data to and training of the Tensorflow network. Performance gains of this approach for normally not asynchronous algorithms like DDPG and DQN will need to be investigated and were out of the scope of this project.
+Behind the scenes the model class will take care of threaded experience generation with multiple agents and multithreaded feeding of data to and training of the Tensorflow network. Performance gains of this approach for normally not asynchronous algorithms like DDPG and DQN will need to be investigated and were out of the scope of this project.
 
 To use the implemented algorithm one should take a look at the README[^readmemd] file and the `run.py`[^runpy] and `torcs.py`[^torcspy] -- the latter two files should be self explanatory and need to be edited for hyperparameter tuning.
 
@@ -81,22 +81,14 @@ To use the implemented algorithm one should take a look at the README[^readmemd]
 [^runpy]: [github.com/ahoereth/ddpg $\rightarrow$ run.py](https://github.com/ahoereth/ddpg/blob/master/src/lib/model.py)
 [^torcspy]: [github.com/ahoereth/ddpg $\rightarrow$ torcs.py](https://github.com/ahoereth/ddpg/blob/master/src/lib/model.py)
 
-- only the DDPG class needs to be instantiated with all its hyperparameter settings and the name of an environment, everything else is abstracted
-
-## Torcs
-- really old game, hard to get up and running
-- abstracted away into a docker container so we can run it remotely
-
 ![Torcs](gfx/torcs.jpg){width=50%}
 
-# Training the Deep Deterministic Policy Gradient Algorithm
-
-## The Network
-
-## Obtaining TORCS
-
 # Conclusion
-As mentioned in the introduction, continuous action reinforcement learning allows us to do so much more in the real world with the theories behind learning from reward.  The DDPG paper was huge when it came out, and most reinforcement learning papers these days reference it or some derviative work in some way.
+As mentioned in the introduction, continuous action reinforcement learning allows us to tackle a lot more applications which are closer to the real world. The DDPG paper was huge when it came out, and most reinforcement learning papers these days reference it or some derived work in some way. Nevertheless, when applying the algorithm to any problem at all we always came back to a single (for nearly all Deep RL algorithms) well known challenge: The amount of data required for learning reasonable policies. In prior projects some of us already ran into similar problems with the DQN algorithm and also for algorithms succeeding DDPG and exceeding it performance wise this is ongoing.
+
+As viewable in the repository[^repo] our algorithm learns a reasonable policy, but fails to complete a whole track. Training to achieve this policy on a consumer grade quad core machine takes around half a day, further progress is to be expected.
+
+[^repo]: [https://github.com/ahoereth/ddpg](https://github.com/ahoereth/ddpg)
 
 ## References {.allowframebreaks}
 
