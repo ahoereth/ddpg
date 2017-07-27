@@ -1,0 +1,34 @@
+---
+title: Deep Reinforcement Learning
+subtitle: "Special Focus: Continuous Control with Deep Deterministic Policy Gradients"
+author:
+  - John Berroa
+  - Felix Meyer zu Driehausen
+  - Alexander Höreth
+institute: Institute of Cognitive Science, University of Osnabrück
+date: 15.06.2017
+handout: True
+listings: True
+classoption:
+    - notes
+theme: metropolis
+colortheme: metropolis
+themeoptions:
+    - progressbar=frametitle
+classoption:
+    - aspectratio=169
+header-includes:
+    - \setbeameroption{show notes}
+    - \definecolor{UOSred}{HTML}{AC1035}
+    - \setbeamercolor{progress bar}{fg=UOSred}
+    - \setbeamercolor{background canvas}{bg=white}
+    - \let\Tiny=\tiny
+    - \newcommand{\pycode}[1]{\lstinputlisting[language=python]{#1}}
+    - \newcommand{\cliqr}[1]{}
+    - \setbeamertemplate{navigation symbols}{}
+    - \usepackage[all]{nowidow}
+    - \newcommand{\columnsbegin}{\begin{columns}}
+    - \newcommand{\columnsend}{\end{columns}}
+    - \widowpenalties 1 1000
+    # - \clubpenalty 10000
+...
