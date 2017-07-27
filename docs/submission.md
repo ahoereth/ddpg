@@ -32,3 +32,6 @@ Our implementation might also be of some interest engineering wise: We created a
 Usage explanations and a download link for trained weights can be found in the repository's readme (download in the last paragraph):
 
 **[github.com/ahoereth/ddpg $\rightarrow$ README.md](https://github.com/ahoereth/ddpg/blob/master/src/README.py)**
+
+## Optional Report
+One can also read a more detailed report about the theoretical basis behind DDPG and our project if so desired, which is included alongside this document.

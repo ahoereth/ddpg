@@ -1,4 +1,4 @@
-% Continuous Control with Deep Deterministic Policy Gradients
+﻿% Continuous Control with Deep Deterministic Policy Gradients
 % John Berroa, Felix Meyer zu Driehausen, Alexander Höreth
 % University of Osnabrück, \today
 
@@ -84,7 +84,7 @@ To use the implemented algorithm one should take a look at the README[^readmemd]
 ![Torcs](gfx/torcs.jpg){width=50%}
 
 # Conclusion
-As mentioned in the introduction, continuous action reinforcement learning allows us to tackle a lot more applications which are closer to the real world. The DDPG paper was huge when it came out, and most reinforcement learning papers these days reference it or some derived work in some way. Nevertheless, when applying the algorithm to any problem at all we always came back to a single (for nearly all Deep RL algorithms) well known challenge: The amount of data required for learning reasonable policies. In prior projects some of us already ran into similar problems with the DQN algorithm and also for algorithms succeeding DDPG and exceeding it performance wise this is ongoing.
+As mentioned in the introduction, continuous action reinforcement learning allows us to tackle a lot more applications which are closer to the real world. The DDPG paper was huge when it came out, and most reinforcement learning papers these days reference it or some derived work in some way. Nevertheless, when applying the algorithm to any problem at all we always came back to a single (for nearly all Deep RL algorithms) well known challenge: The amount of data required for learning reasonable policies. In prior projects some of us already ran into similar data efficiency problems with the DQN algorithm, and for algorithms succeeding DDPG and exceeding its performance, this is still a problem.
 
 As viewable in the repository[^repo] our algorithm learns a reasonable policy, but fails to complete a whole track. Training to achieve this policy on a consumer grade quad core machine takes around half a day, further progress is to be expected.
 
