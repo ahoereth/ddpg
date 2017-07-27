@@ -23,3 +23,8 @@ Docker also enables one to easily run everything on a remote instance using [doc
 
 ### Without docker
 If you want to run torcs, use docker. For playing around with other Gym environments you can install the requirements using `pip install -r requirements.txt` and use `run.py` -- checkout the source, should be self explanatory.
+
+### Loading checkpoints & changing hyperparameters
+Because its kind of messy to pass arguments to python files through docker-compose, one needs to edit the run scripts directly for changing anything.
+
+By default `docker-compose up` will run `torcs.py` -- to use `run.py` instead one can use `CMD='python3 run.py' docker-compose-up`. By editing the designated file one can tweak hyper parameters and load checkpoints -- both should be self explanatory. `torcs.py` is currently configured to the hyper parameters which match [this checkpoint](https://drive.google.com/open?id=0B-k-3UScwy54MDg3bmZQTFJQcUk) -- extract the zip such that the `runs` folder is in the base of this repository and remove the comment from the `CHECKPOINT` line in `torcs.py`, run `docker-compose up` and visit `localhost:6901`.
