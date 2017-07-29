@@ -5,7 +5,7 @@ from src import DDPG
 
 ENV_NAME = 'Torcs'
 CHECKPOINT = None
-# CHECKPOINT = 'runs/170725-1720/291000'
+CHECKPOINT = 'runs/170725-1720/291000'
 
 model = DDPG(
     ENV_NAME, checkpoint=CHECKPOINT,
