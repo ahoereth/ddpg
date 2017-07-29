@@ -45,7 +45,7 @@ services:
       - 8888:8888
     volumes:
       - X11:/tmp/.X11-unix
-      - ${WD:-/home/ubuntu}:/wd
+      - ${WD:-.}:/wd
   tensorboard:
     image: tensorflow/tensorflow:1.2.1-py3
     container_name: tensorboard
@@ -53,7 +53,7 @@ services:
     restart: always
     working_dir: /wd
     volumes:
-      - ${WD:-/home/ubuntu}/logs:/wd
+      - ${WD:-.}/logs:/wd
     ports:
       - 6006:6006
 volumes:
