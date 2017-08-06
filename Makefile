@@ -1,7 +1,7 @@
 HOST?=ddpg
 SIZE?=64
 
-docs/slides/slides.pdf: docs/slides/slides.md
+docs/slides/slides.pdf:
 	cd docs/slides && \
 	pandoc \
 		-t beamer \
@@ -13,9 +13,8 @@ docs/slides/slides.pdf: docs/slides/slides.md
 		-o slides.pdf \
 		slides.yaml *.md
 
-# --listings
-
 slides: docs/slides/slides.pdf
+
 
 docs/report/report.pdf: docs/report/report.md
 	cd docs/report && \
