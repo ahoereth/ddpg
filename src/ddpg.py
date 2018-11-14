@@ -10,7 +10,6 @@ from tensorflow.contrib.framework import get_variables
 
 from .lib import Model, to_tuple, to_logpath
 
-
 Network = namedtuple('Network', ['y', 'vars', 'ops', 'losses'])
 
 
@@ -18,27 +17,26 @@ class DDPG(Model):
     """Deep Deterministic Policy Gradient RL Model."""
 
     def __init__(
-        self,
-        env_name,
-        *,
-        batchsize=64,
-        weight_decay=True,
-        bias_decay=True,  # Not defined by original paper.
-        decay_scale=1e-2,
-        actor_batch_normalization=True,
-        critic_batch_normalization=True,
-        gamma=0.99,
-        critic_learning_rate=1e-3,
-        actor_learning_rate=1e-4,
-        tau=1e-3,
-        mu=0.,
-        theta=.15,
-        sigma=.2,
-        h1=100,
-        h2=50,
-        config_name='',
-        **kwargs
-    ):
+            self,
+            env_name,
+            *,
+            batchsize=64,
+            weight_decay=True,
+            bias_decay=True,  # Not defined by original paper.
+            decay_scale=1e-2,
+            actor_batch_normalization=True,
+            critic_batch_normalization=True,
+            gamma=0.99,
+            critic_learning_rate=1e-3,
+            actor_learning_rate=1e-4,
+            tau=1e-3,
+            mu=0.,
+            theta=.15,
+            sigma=.2,
+            h1=100,
+            h2=50,
+            config_name='',
+            **kwargs):
         self.weight_decay = weight_decay
         self.bias_decay = bias_decay
         self.decay_scale = decay_scale
@@ -55,13 +53,18 @@ class DDPG(Model):
         self.h2 = h2
         config_name = to_logpath(
             config_name,
-            weightDecay=weight_decay, biasDecay=bias_decay,
-            decayScale=decay_scale, actorBN=actor_batch_normalization,
+            weightDecay=weight_decay,
+            biasDecay=bias_decay,
+            decayScale=decay_scale,
+            actorBN=actor_batch_normalization,
             criticBN=critic_batch_normalization,
-            criticLR=critic_learning_rate, actorLR=actor_learning_rate,
-            gamma=gamma, tau=tau, env=env_name)
-        super(DDPG, self).__init__(env_name, batchsize=batchsize,
-                                   config_name=config_name, **kwargs)
+            criticLR=critic_learning_rate,
+            actorLR=actor_learning_rate,
+            gamma=gamma,
+            tau=tau,
+            env=env_name)
+        super(DDPG, self).__init__(
+            env_name, batchsize=batchsize, config_name=config_name, **kwargs)
 
     def make_network(self, act_states, states, actions, rewards, terminals,
                      states_, training, action_bounds, exploration_steps):
@@ -71,19 +74,18 @@ class DDPG(Model):
         # Create the online and target actor networks. The online actor
         # once takes the training states and once the 'action states' as
         # inputs and, together with the noise, provides the current action
-        make_noise = partial(self.make_noise, mu=self.mu, theta=self.theta,
-                             sigma=self.sigma)
+        make_noise = partial(
+            self.make_noise, mu=self.mu, theta=self.theta, sigma=self.sigma)
         action_shape = actions.shape.as_list()[1:]
-        make_actor = partial(self.make_actor, dout=action_shape,
-                             bounds=action_bounds)
+        make_actor = partial(
+            self.make_actor, dout=action_shape, bounds=action_bounds)
         with tf.variable_scope('actor'):
             actor = make_actor(states)
             actor_short = make_actor(act_states, reuse=True)
             actor_ = make_actor(states_, name='target')
-            epsilon = tf.maximum(0., (1. - step *
-                                      (1. / tf.to_float(exploration_steps))))
-            noise = tf.cond(training,
-                            lambda: make_noise(action_shape),
+            epsilon = tf.maximum(
+                0., (1. - step * (1. / tf.to_float(exploration_steps))))
+            noise = tf.cond(training, lambda: make_noise(action_shape),
                             lambda: tf.constant(0.))
             tf.summary.scalar('misc/epsilon', epsilon)
             tf.summary.histogram('misc/noise', noise)
@@ -117,8 +119,10 @@ class DDPG(Model):
         ]
 
         # Sync the two network pairs initially.
-        init_ops = [self.make_hard_updates(critic, critic_) +
-                    self.make_hard_updates(actor, actor_)]
+        init_ops = [
+            self.make_hard_updates(critic, critic_) + self.make_hard_updates(
+                actor, actor_)
+        ]
 
         return action, init_ops, train_ops
 
@@ -138,7 +142,8 @@ class DDPG(Model):
             regularizer = tf.contrib.layers.l2_regularizer(self.decay_scale)
 
         return tf.layers.dense(
-            x, units,
+            x,
+            units,
             name=name,
             activation=activation,
             kernel_initializer=initializer or None,
@@ -153,12 +158,12 @@ class DDPG(Model):
         with tf.variable_scope(name, reuse=reuse) as scope:
             net = states
             if self.critic_batch_normalization:
-                net = tf.layers.batch_normalization(net, training=is_batch,
-                                                    epsilon=1e-7, momentum=.95)
+                net = tf.layers.batch_normalization(
+                    net, training=is_batch, epsilon=1e-7, momentum=.95)
             net = self.dense('0', net, self.h1, tf.nn.relu, decay=True)
             if self.critic_batch_normalization:
-                net = tf.layers.batch_normalization(net, training=is_batch,
-                                                    epsilon=1e-7, momentum=.95)
+                net = tf.layers.batch_normalization(
+                    net, training=is_batch, epsilon=1e-7, momentum=.95)
             net = tf.concat([net, actions], axis=1)  # Actions enter the net
             net = self.dense('1', net, self.h2, tf.nn.relu, decay=True)
             y = self.dense('2_q', net, 1, decay=True, minmax=1e-4)  # 3e-3)
@@ -173,16 +178,16 @@ class DDPG(Model):
         with tf.variable_scope(name, reuse=reuse) as scope:
             net = states
             if self.actor_batch_normalization:
-                net = tf.layers.batch_normalization(net, training=is_batch,
-                                                    epsilon=1e-7, momentum=.95)
+                net = tf.layers.batch_normalization(
+                    net, training=is_batch, epsilon=1e-7, momentum=.95)
             net = self.dense('0', net, self.h1, tf.nn.relu)
             if self.actor_batch_normalization:
-                net = tf.layers.batch_normalization(net, training=is_batch,
-                                                    epsilon=1e-7, momentum=.95)
+                net = tf.layers.batch_normalization(
+                    net, training=is_batch, epsilon=1e-7, momentum=.95)
             net = self.dense('1', net, self.h2, tf.nn.relu)
             if self.actor_batch_normalization:
-                net = tf.layers.batch_normalization(net, training=is_batch,
-                                                    epsilon=1e-7, momentum=.95)
+                net = tf.layers.batch_normalization(
+                    net, training=is_batch, epsilon=1e-7, momentum=.95)
             y = self.dense('2', net, dout, tf.nn.tanh, minmax=1e-4)  # 3e-3)
             scaled = self.scale(y, bounds_in=(-1, 1), bounds_out=bounds)
             ops = scope.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -190,8 +195,12 @@ class DDPG(Model):
             return Network(scaled, get_variables(scope), ops, losses)
 
     @staticmethod
-    def make_critic_trainer(critic, critic_, terminals, rewards,
-                            gamma=.99, learning_rate=1e-3):
+    def make_critic_trainer(critic,
+                            critic_,
+                            terminals,
+                            rewards,
+                            gamma=.99,
+                            learning_rate=1e-3):
         """Build critic network optimizer minimizing MSE.
 
         Terminal states are used as final horizon, meaning future rewards are
@@ -235,15 +244,19 @@ class DDPG(Model):
     def make_hard_updates(src, dst):
         """Overwrite target with online network parameters."""
         with tf.variable_scope('hardupdates'):
-            return [target.assign(online)
-                    for online, target in zip(src.vars, dst.vars)]
+            return [
+                target.assign(online)
+                for online, target in zip(src.vars, dst.vars)
+            ]
 
     @staticmethod
     def make_soft_updates(src, dst, tau=1e-3):
         """Soft update the dst net's parameters using those of the src net."""
         with tf.variable_scope('softupdates'):
-            return [target.assign(tau * online + (1 - tau) * target)
-                    for online, target in zip(src.vars, dst.vars)]
+            return [
+                target.assign(tau * online + (1 - tau) * target)
+                for online, target in zip(src.vars, dst.vars)
+            ]
 
     @staticmethod
     def make_noise(n, mu=0., theta=.15, sigma=.2):
@@ -254,8 +267,8 @@ class DDPG(Model):
         """
         shape = to_tuple(n)
         with tf.variable_scope('OUNoise'):
-            state = tf.get_variable('state', shape,
-                                    initializer=tf.constant_initializer(mu))
+            state = tf.get_variable(
+                'state', shape, initializer=tf.constant_initializer(mu))
             noise = theta * (mu - state) + sigma * tf.random_normal(shape)
             # reset = state.assign(tf.zeros((n,)))
             return state.assign_add(noise)
@@ -265,5 +278,5 @@ class DDPG(Model):
         min_in, max_in = bounds_in
         min_out, max_out = bounds_out
         with tf.variable_scope('scaling'):
-            return (((x - min_in) / (max_in - min_in)) *
-                    (max_out - min_out) + min_out)
+            return (((x - min_in) / (max_in - min_in)) * (max_out - min_out) +
+                    min_out)
