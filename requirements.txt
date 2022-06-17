@@ -15,7 +15,7 @@ jedi==0.10.2
 jupyter-client==5.0.1
 jupyter-core==4.3.0
 matplotlib==2.0.2
-numpy==1.12.1
+numpy==1.21.0
 olefile==0.44
 packaging==16.8
 pandas==0.20.1
